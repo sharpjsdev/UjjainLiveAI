@@ -1,0 +1,50 @@
+[
+  {
+    "id": "event_1",
+    "title": "First Shahi Snan (Royal Bath)",
+    "hindiTitle": "प्रथम शाही स्नान (महाप्रारंभ)",
+    "date": "April 9, 2028 (Sunday)",
+    "tithi": "Chaitra Shukla Purnima (चैत्र पूर्णिमा)",
+    "significance": "Grand Opening of Simhastha Kumbh Mela 2028. Sacred royal dip led by Akhara Saints and Naga Babas.",
+    "hindiSignificance": "सिंहस्थ 2028 का प्रथम शाही स्नान। 13 अखाड़ों के नागा साधुओं एवं संतों द्वारा सूर्योदय पर सर्वप्रथम अमृत डुबकी।",
+    "location": "Ram Ghat & Dutt Akhara Ghat, Shipra River",
+    "isShahiSnan": true,
+    "type": "shahi_snan"
+  },
+  {
+    "id": "event_2",
+    "title": "Second Shahi Snan (Vaishakh Amavasya)",
+    "hindiTitle": "द्वितीय शाही स्नान (वैशाख अमावस्या)",
+    "date": "April 24, 2028 (Monday)",
+    "tithi": "Vaishakh Krishna Amavasya (वैशाखी अमावस्या)",
+    "significance": "The massive second Royal Bath. High planetary alignment for pitru tarpan and liberation.",
+    "hindiSignificance": "द्वितीय महा शाही स्नान। पितृ तर्पण एवं आत्मिक शुद्धि का महापुण्य पर्व।",
+    "location": "Ram Ghat, Dutt Akhara & Siddhwat Ghat",
+    "isShahiSnan": true,
+    "type": "shahi_snan"
+  },
+  {
+    "id": "event_3",
+    "title": "Maha Shahi Snan (The Grand Royal Bath)",
+    "hindiTitle": "महा शाही स्नान (सिंहस्थ का सर्वोच्च पर्व)",
+    "date": "May 8, 2028 (Monday)",
+    "tithi": "Vaishakh Shukla Purnima (बुद्ध पूर्णिमा)",
+    "significance": "The supreme zenith of Simhastha Ujjain 2028! The largest cosmic congregation of humanity.",
+    "hindiSignificance": "सिंहस्थ 2028 का सबसे बड़ा एवं अंतिम महा शाही स्नान। करोड़ों संतों व भक्तों का एक साथ अमृत स्नान।",
+    "location": "All Ghats: Ram Ghat, Dutt Akhara, Mangalnath, Narsingha Ghat",
+    "isShahiSnan": true,
+    "type": "shahi_snan"
+  },
+  {
+    "id": "event_4",
+    "title": "Panchkroshi Yatra Pilgrimage",
+    "hindiTitle": "पावन 118 किमी पंचक्रोशी यात्रा",
+    "date": "April 25 – April 30, 2028",
+    "tithi": "Vaishakh Krishna Dashami to Amavasya",
+    "significance": "Ancient 118-km barefoot pilgrimage encircling Ujjain across 4 directional Mahadev temples.",
+    "hindiSignificance": "उज्जैन के चारों दिशाओं के रक्षक महादेवों की 118 किमी पैदल परिक्रमा।",
+    "location": "Starts & ends at Nagchandreshwar (Patni Bazaar)",
+    "isShahiSnan": false,
+    "type": "program"
+  }
+]

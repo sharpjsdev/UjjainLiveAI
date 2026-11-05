@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simhastha Ujjain 2028 - Master Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #FF6F00;
+      --primary-dark: #C43E00;
+      --gold: #D4AF37;
+      --gold-light: #F3E5AB;
+      --bg: #0F0A06;
+      --card-bg: #1B120B;
+      --surface: #27190F;
+      --border: #3D2617;
+      --text: #FBE9E7;
+      --text-muted: #BCAAA4;
+      --success: #2E7D32;
+      --danger: #C62828;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    header {
+      background: linear-gradient(135deg, #1B120B 0%, #3E1E09 50%, #1B120B 100%);
+      border-bottom: 2px solid var(--gold);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand-icon { font-size: 32px; filter: drop-shadow(0 0 10px rgba(212,175,55,0.6)); }
+    .brand-text h1 { font-family: 'Cinzel', serif; font-size: 22px; color: var(--gold-light); letter-spacing: 1px; }
+    .brand-text p { font-size: 12px; color: var(--primary); font-weight: 600; }
+
+    .nav-tabs { display: flex; gap: 8px; margin: 24px 32px 16px; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--gold-light); }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--primary); background: rgba(255,111,0,0.08); border-radius: 8px 8px 0 0; }
+
+    main { padding: 0 32px 40px; flex: 1; max-width: 1400px; width: 100%; margin: 0 auto; }
+
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .search-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--text);
+      font-size: 14px;
+      width: 320px;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(255,111,0,0.4); }
+    .btn-secondary { background: var(--surface); color: var(--gold-light); border: 1px solid var(--border); }
+    .btn-danger { background: var(--danger); color: white; }
+
+    .data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+    .item-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+    .item-card:hover { border-color: var(--gold); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+    .item-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .item-title { font-size: 16px; font-weight: 700; color: var(--gold-light); }
+    .item-sub { font-size: 13px; color: var(--primary); font-weight: 600; }
+    .item-badge { background: rgba(212,175,55,0.15); border: 1px solid var(--gold); color: var(--gold); font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+    .item-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px; }
+    .item-meta { font-size: 12px; color: #D7CCC8; margin-bottom: 6px; }
+    .item-meta strong { color: var(--text); }
+    .item-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+
+    /* Modal Form */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-content {
+      background: var(--card-bg);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--gold-light); margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--gold-light); margin-bottom: 5px; }
+    .form-control {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 13.5px;
+    }
+    .form-control:focus { outline: none; border-color: var(--primary); }
+    textarea.form-control { min-height: 80px; resize: vertical; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🕉️</div>
+      <div class="brand-text">
+        <h1>SIMHASTHA UJJAIN 2028</h1>
+        <p>Official Content Management & Master Admin Portal</p>
+      </div>
+    </div>
+    <div>
+      <span style="font-size: 12px; color: var(--gold); background: rgba(212,175,55,0.1); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--gold);">
+        ● MySQL Database Active (Port 3306 / REST 3000)
+      </span>
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('temples')">
+      <span>🕉️</span> Temple & Darshan Guide
+    </button>
+    <button class="tab-btn" onclick="switchTab('events')">
+      <span>👑</span> Snan Dates & Event Calendar
+    </button>
+    <button class="tab-btn" onclick="switchTab('stays')">
+      <span>🏨</span> Stays, Dharamshalas & Transit
+    </button>
+    <button class="tab-btn" onclick="switchTab('chat-logs')">
+      <span>💬</span> User Chat Logs (Q&A)
+    </button>
+  </div>
+
+  <main>
+    <div class="action-bar">
+      <input type="text" id="searchBox" class="search-box" placeholder="Search entries..." onkeyup="renderCurrentData()">
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <span>+</span> Add New Entry
+      </button>
+    </div>
+
+    <div id="dataGrid" class="data-grid"></div>
+  </main>
+
+  <!-- Dynamic Modal for CRUD -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">
+        <span id="modalHeaderTitle">Add New Entry</span>
+        <button class="close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="crudForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="formId">
+        <div id="dynamicFormFields"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let currentTab = 'temples';
+    let rawData = [];
+
+    async function loadData() {
+      try {
+        const res = await fetch(`/api/${currentTab}`);
+        rawData = await res.json();
+        renderCurrentData();
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      const addBtn = document.querySelector('.action-bar .btn-primary');
+      if (addBtn) addBtn.style.display = (tab === 'chat-logs') ? 'none' : 'inline-flex';
+      loadData();
+    }
+
+    function renderCurrentData() {
+      const q = document.getElementById('searchBox').value.toLowerCase();
+      const grid = document.getElementById('dataGrid');
+      grid.innerHTML = '';
+
+      const filtered = rawData.filter(item => {
+        const text = JSON.stringify(item).toLowerCase();
+        return text.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">No entries found. Click "+ Add New Entry" above to create one.</div>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+
+        if (currentTab === 'temples') {
+          const imgPreview = item.imageUrl 
+            ? `<div style="margin: -16px -16px 12px -16px; height: 160px; overflow: hidden; border-top-left-radius: 12px; border-top-right-radius: 12px; background: #2a2a2a;">
+                 <img src="${item.imageUrl}" alt="${item.templeName}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'">
+               </div>`
+            : '';
+          card.innerHTML = `
+            <div>
+              ${imgPreview}
+              <div class="item-header">
+                <div>
+                  <div class="item-title">${item.templeName || item.name}</div>
+                  <div class="item-sub">${item.hindiName || ''}</div>
+                </div>
+                <span class="item-badge">TEMPLE</span>
+              </div>
+              <p class="item-desc">${item.significance || ''}</p>
+              <div class="item-meta"><strong>⏰ Hours:</strong> ${item.timing || 'N/A'}</div>
+              <div class="item-meta"><strong>👔 Dress:</strong> ${item.dressCode ? item.dressCode.slice(0, 80) + '...' : 'N/A'}</div>
+              <div class="item-meta"><strong>🍯 Prasad:</strong> ${item.prasadDetails ? item.prasadDetails.slice(0, 80) + '...' : 'N/A'}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-secondary btn-sm" onclick="editItem('${item.id || item.templeId}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id || item.templeId}')">Delete</button>
+            </div>
+          `;
+        } else if (currentTab === 'events') {
+          card.innerHTML = `
+            <div>
+              <div class="item-header">
+                <div>
+                  <div class="item-title">${item.hindiTitle}</div>
+                  <div class="item-sub">${item.title}</div>
+                </div>
+                <span class="item-badge" style="${item.isShahiSnan ? 'background: rgba(255,111,0,0.2); border-color: var(--primary); color: var(--primary);' : ''}">${item.isShahiSnan ? '👑 SHAHI SNAN' : 'EVENT'}</span>
+              </div>
+              <p class="item-desc">${item.hindiSignificance || item.significance || ''}</p>
+              <div class="item-meta"><strong>📅 Date:</strong> ${item.date}</div>
+              <div class="item-meta"><strong>🌓 Tithi:</strong> ${item.tithi}</div>
+              <div class="item-meta"><strong>📍 Ghat:</strong> ${item.location}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-secondary btn-sm" onclick="editItem('${item.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
+            </div>
+          `;
+        } else if (currentTab === 'stays') {
+          card.innerHTML = `
+            <div>
+              <div class="item-header">
+                <div>
+                  <div class="item-title">${item.icon || '🏨'} ${item.name}</div>
+                  <div class="item-sub">${item.hindiName || ''}</div>
+                </div>
+                <span class="item-badge">${(item.category || 'stay').toUpperCase()}</span>
+              </div>
+              <p class="item-desc">${item.description || ''}</p>
+              <div class="item-meta"><strong>📍 Area:</strong> ${item.area}</div>
+              <div class="item-meta"><strong>💰 Tariff:</strong> ${item.pricing || 'N/A'}</div>
+              <div class="item-meta"><strong>📞 Phone:</strong> ${item.contact || 'N/A'}</div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-secondary btn-sm" onclick="editItem('${item.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
+            </div>
+          `;
+        } else if (currentTab === 'chat-logs') {
+          const dateStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+          const voiceBadge = item.is_voice ? '🎙️ Voice' : '⌨️ Text';
+          card.innerHTML = `
+            <div>
+              <div class="item-header">
+                <div>
+                  <div class="item-title" style="color: var(--gold-light); font-size: 15px;">👤 User Question</div>
+                  <div class="item-sub" style="font-size: 12px;">${dateStr}</div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <span class="item-badge" style="background: rgba(255,193,7,0.15); color: #ffc107;">${(item.language || 'hi').toUpperCase()}</span>
+                  <span class="item-badge">${voiceBadge}</span>
+                </div>
+              </div>
+              <div style="background: rgba(255,255,255,0.06); padding: 12px; border-radius: 8px; margin: 10px 0; font-weight: 600; color: #fff;">
+                ${escapeHtml(item.question)}
+              </div>
+              <div class="item-title" style="color: var(--primary); font-size: 13px; margin-top: 14px;">🤖 AI Response</div>
+              <div style="background: rgba(255,111,0,0.06); border-left: 3px solid var(--primary); padding: 12px; border-radius: 4px; margin-top: 6px; font-size: 13.5px; line-height: 1.5; color: #ddd; max-height: 220px; overflow-y: auto; white-space: pre-wrap;">
+                ${escapeHtml(item.answer)}
+              </div>
+            </div>
+          `;
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById('formId').value = '';
+      document.getElementById('modalHeaderTitle').innerText = `Add New ${currentTab.toUpperCase()}`;
+      renderFormFields();
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function editItem(id) {
+      const item = rawData.find(x => x.id === id || x.templeId === id);
+      if (!item) return;
+      document.getElementById('formId').value = id;
+      document.getElementById('modalHeaderTitle').innerText = `Edit ${currentTab.toUpperCase()}`;
+      renderFormFields(item);
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function renderFormFields(data = {}) {
+      const c = document.getElementById('dynamicFormFields');
+      if (currentTab === 'temples') {
+        c.innerHTML = `
+          <div class="form-group"><label>Temple Name (English)</label><input class="form-control" name="templeName" value="${data.templeName || ''}" required></div>
+          <div class="form-group"><label>Hindi Name (हिंदी नाम)</label><input class="form-control" name="hindiName" value="${data.hindiName || ''}" required></div>
+          <div class="form-group"><label>Temple Image URL (मंदिर फोटो लिंक)</label><input class="form-control" name="imageUrl" value="${data.imageUrl || ''}" placeholder="https://images.unsplash.com/photo-..."></div>
+          <div class="form-group"><label>Deity & Form</label><input class="form-control" name="deity" value="${data.deity || ''}"></div>
+          <div class="form-group"><label>Darshan Timings</label><input class="form-control" name="timing" value="${data.timing || ''}"></div>
+          <div class="form-group"><label>Significance & History</label><textarea class="form-control" name="significance">${data.significance || ''}</textarea></div>
+          <div class="form-group"><label>Dress Code Rules</label><textarea class="form-control" name="dressCode">${data.dressCode || ''}</textarea></div>
+          <div class="form-group"><label>Prasad Details</label><input class="form-control" name="prasadDetails" value="${data.prasadDetails || ''}"></div>
+          <div class="form-group"><label>VIP Fast-Track Pass Rules</label><input class="form-control" name="vipFastTrackRules" value="${data.vipFastTrackRules || ''}"></div>
+          <div class="form-group"><label>Booking Website Link</label><input class="form-control" name="bookingWebsite" value="${data.bookingWebsite || ''}"></div>
+        `;
+      } else if (currentTab === 'events') {
+        c.innerHTML = `
+          <div class="form-group"><label>Hindi Event Title (हिंदी शीर्षक)</label><input class="form-control" name="hindiTitle" value="${data.hindiTitle || ''}" required></div>
+          <div class="form-group"><label>English Event Title</label><input class="form-control" name="title" value="${data.title || ''}" required></div>
+          <div class="form-group"><label>Auspicious Date</label><input class="form-control" name="date" value="${data.date || ''}" required></div>
+          <div class="form-group"><label>Panchang Tithi</label><input class="form-control" name="tithi" value="${data.tithi || ''}"></div>
+          <div class="form-group"><label>Ghat / Location</label><input class="form-control" name="location" value="${data.location || ''}"></div>
+          <div class="form-group"><label>Hindi Spiritual Significance</label><textarea class="form-control" name="hindiSignificance">${data.hindiSignificance || ''}</textarea></div>
+          <div class="form-group"><label>Is Royal Shahi Snan?</label>
+            <select class="form-control" name="isShahiSnan">
+              <option value="true" ${data.isShahiSnan ? 'selected' : ''}>Yes (Shahi Snan 👑)</option>
+              <option value="false" ${!data.isShahiSnan ? 'selected' : ''}>No (Parva / Normal Event)</option>
+            </select>
+          </div>
+        `;
+      } else if (currentTab === 'stays') {
+        c.innerHTML = `
+          <div class="form-group"><label>Name</label><input class="form-control" name="name" value="${data.name || ''}" required></div>
+          <div class="form-group"><label>Hindi Name (हिंदी नाम)</label><input class="form-control" name="hindiName" value="${data.hindiName || ''}" required></div>
+          <div class="form-group"><label>Category</label>
+            <select class="form-control" name="category">
+              <option value="hotel" ${data.category === 'hotel' ? 'selected' : ''}>Hotel</option>
+              <option value="dharamshala" ${data.category === 'dharamshala' ? 'selected' : ''}>Dharamshala</option>
+              <option value="tent" ${data.category === 'tent' ? 'selected' : ''}>Tent City</option>
+              <option value="transport" ${data.category === 'transport' ? 'selected' : ''}>Transport</option>
+              <option value="parking" ${data.category === 'parking' ? 'selected' : ''}>Parking</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Emoji Icon</label><input class="form-control" name="icon" value="${data.icon || '🏨'}"></div>
+          <div class="form-group"><label>Area / Address</label><input class="form-control" name="area" value="${data.area || ''}"></div>
+          <div class="form-group"><label>Tariff / Pricing</label><input class="form-control" name="pricing" value="${data.pricing || ''}"></div>
+          <div class="form-group"><label>Contact Phone</label><input class="form-control" name="contact" value="${data.contact || ''}"></div>
+          <div class="form-group"><label>Description</label><textarea class="form-control" name="description">${data.description || ''}</textarea></div>
+        `;
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('formId').value;
+      const formData = new FormData(e.target);
+      const payload = {};
+      formData.forEach((val, key) => {
+        if (key === 'isShahiSnan') {
+          payload[key] = val === 'true';
+        } else {
+          payload[key] = val;
+        }
+      });
+
+      try {
+        let res;
+        if (id) {
+          res = await fetch(`/api/${currentTab}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          res = await fetch(`/api/${currentTab}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        }
+        closeModal();
+        loadData();
+      } catch (err) {
+        alert('Save failed: ' + err.message);
+      }
+    }
+
+    async function deleteItem(id) {
+      if (!confirm('Are you sure you want to permanently delete this entry?')) return;
+      try {
+        await fetch(`/api/${currentTab}/${id}`, { method: 'DELETE' });
+        loadData();
+      } catch (err) {
+        alert('Delete failed: ' + err.message);
+      }
+    }
+
+    // Initial load
+    loadData();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9933;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#FF9933;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#iconGradient)"/>
+  
+  <!-- Inner Circle Shadow/Depth -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#8B4513" stroke-width="8" opacity="0.3"/>
+  
+  <!-- Main Circle -->
+  <circle cx="256" cy="256" r="220" fill="#FFF8DC" opacity="0.95"/>
+  <circle cx="256" cy="256" r="220" fill="url(#centerGlow)"/>
+  
+  <!-- Temple Spire (Main Element) -->
+  <g transform="translate(256, 180)">
+    <!-- Spire layers -->
+    <path d="M 0,-80 L 50,-30 L 40,20 L 30,50 L 0,70 L -30,50 L -40,20 L -50,-30 Z" 
+          fill="#FF9933" stroke="#8B4513" stroke-width="2"/>
+    
+    <!-- Golden highlights -->
+    <path d="M -10,-60 L 0,-45 L 10,-60" fill="#FFD700" opacity="0.9"/>
+    <path d="M -15,-20 L 0,0 L 15,-20" fill="#FFD700" opacity="0.8"/>
+    <path d="M -20,10 L 0,30 L 20,10" fill="#FFD700" opacity="0.7"/>
+  </g>
+  
+  <!-- Om Symbol (ॐ) -->
+  <text x="256" y="310" font-size="120" font-family="serif" fill="#800080" 
+        text-anchor="middle" font-weight="bold" opacity="0.85">ॐ</text>
+  
+  <!-- Decorative dots around symbol -->
+  <circle cx="180" cy="240" r="10" fill="#DC143C"/>
+  <circle cx="332" cy="240" r="10" fill="#DC143C"/>
+  <circle cx="150" cy="320" r="8" fill="#228B22"/>
+  <circle cx="362" cy="320" r="8" fill="#228B22"/>
+  
+  <!-- Bottom decorative line -->
+  <path d="M 120,370 Q 200,350 256,360 Q 312,350 392,370" 
+        stroke="#FF9933" stroke-width="3" fill="none" opacity="0.6" stroke-linecap="round"/>
+  
+  <!-- Corner decorative elements -->
+  <circle cx="80" cy="80" r="20" fill="#FFD700" opacity="0.3"/>
+  <circle cx="432" cy="80" r="20" fill="#FFD700" opacity="0.3"/>
+  <circle cx="80" cy="432" r="20" fill="#FFD700" opacity="0.3"/>
+  <circle cx="432" cy="432" r="20" fill="#FFD700" opacity="0.3"/>
+  
+  <!-- Border -->
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#8B4513" stroke-width="6"/>
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#FFD700" stroke-width="2"/>
+</svg>

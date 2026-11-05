@@ -1,0 +1,94 @@
+[
+  {
+    "id": "mahakaleshwar",
+    "templeId": "mahakaleshwar",
+    "templeName": "Shri Mahakaleshwar Jyotirlinga",
+    "hindiName": "श्री महाकालेश्वर ज्योतिर्लिंग",
+    "deity": "Lord Shiva (Mahakal - Lord of Eternity & Time)",
+    "significance": "The only Dakshinmukhi (south-facing) Jyotirlinga in the world. Enshrines the continuous Cosmic Lingam and is world-renowned for the daily sacred Bhasma Aarti with fresh sacred ashes.",
+    "timing": "4:00 AM – 11:00 PM (Temple doors open at 4:00 AM for Bhasma Aarti)",
+    "aartis": [
+      {
+        "name": "Bhasma Aarti",
+        "hindiName": "दिव्य भस्म आरती",
+        "timingSummer": "4:00 AM – 6:00 AM",
+        "timingWinter": "4:00 AM – 6:00 AM",
+        "description": "Sacred ash ritual performed before dawn."
+      },
+      {
+        "name": "Sandhya Aarti (Evening)",
+        "hindiName": "संध्या आरती (सायंकालीन)",
+        "timingSummer": "7:00 PM – 7:45 PM",
+        "timingWinter": "6:30 PM – 7:15 PM",
+        "description": "Grand evening shringar aarti."
+      }
+    ],
+    "entryGates": [
+      "Gate No. 1 (Nandi Dwar): Bhasma Aarti pilgrims",
+      "Gate No. 4: Sheegra Darshan & VIP pass entry"
+    ],
+    "darshanRoutes": [
+      "Mahakal Lok Corridor -> Sabhamandap -> Nandi Hall View -> Sanctum Jaladhari Exit."
+    ],
+    "vipFastTrackRules": "Sheegra Darshan passes available for ₹250 online or at Gate 4 kiosks.",
+    "bookingWebsite": "https://shrimahakaleshwar.mp.gov.in",
+    "dressCode": "Sanctum: Men in Dhoti/Kurta; Women in Saree.",
+    "prasadDetails": "Certified Besan Laddu Mahaprasad available at temple counters from ₹70."
+  },
+  {
+    "id": "kal_bhairav",
+    "templeId": "kal_bhairav",
+    "templeName": "Shri Kal Bhairav Temple",
+    "hindiName": "श्री काल भैरव मंदिर",
+    "deity": "Lord Kal Bhairav (Tantric & City Guardian)",
+    "significance": "Regarded as the Senapati and celestial administrator of Ujjain.",
+    "timing": "5:00 AM – 10:00 PM",
+    "aartis": [
+      {
+        "name": "Pratah Aarti",
+        "hindiName": "प्रातः आरती",
+        "timingSummer": "6:00 AM",
+        "timingWinter": "6:30 AM",
+        "description": "Morning awakening ritual."
+      }
+    ],
+    "entryGates": [
+      "Main Toran Gate: Entrance from Bhairavgarh parking"
+    ],
+    "darshanRoutes": [
+      "Courtyard -> Sanctum Rail -> Blessing -> Exit"
+    ],
+    "vipFastTrackRules": "Special queue for ₹100 on festival days.",
+    "bookingWebsite": "https://ujjain.nic.in/en/tourist-places/",
+    "dressCode": "Modest casual or traditional attire.",
+    "prasadDetails": "Prasad baskets with coconuts and flowers outside."
+  },
+  {
+    "id": "harsiddhi",
+    "templeId": "harsiddhi",
+    "templeName": "Maa Harsiddhi Shaktipeeth",
+    "hindiName": "माँ हरसिद्धि शक्तिपीठ",
+    "deity": "Goddess Harsiddhi (Durga / Mangala)",
+    "significance": "13th of 51 Shaktipeeths where Devi Sati's elbow fell.",
+    "timing": "5:00 AM – 11:00 PM",
+    "aartis": [
+      {
+        "name": "Deepstambh Deepotsav Aarti",
+        "hindiName": "दीपस्तंभ प्रज्वलन एवं महाआरती",
+        "timingSummer": "7:00 PM – 8:00 PM",
+        "timingWinter": "6:30 PM – 7:30 PM",
+        "description": "Lighting of 1008 oil lamps on towering stone pillars."
+      }
+    ],
+    "entryGates": [
+      "Main East Gate (Facing Rudrasagar pathway)"
+    ],
+    "darshanRoutes": [
+      "Courtyard -> Deepstambh -> Inner Sanctum -> Exit"
+    ],
+    "vipFastTrackRules": "Deepstambh sponsorship available via trust desk.",
+    "bookingWebsite": "https://ujjain.nic.in/en/places-of-interest/",
+    "dressCode": "Traditional Indian attire preferred.",
+    "prasadDetails": "Chunari, dried coconuts, and peda prasad."
+  }
+]
