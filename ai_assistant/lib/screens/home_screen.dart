@@ -88,11 +88,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _openChatInterface() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ChatScreen(),
-      ),
-    );
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const ChatScreen(),
+        ),
+      );
+    }
   }
 
   @override
@@ -106,11 +110,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ),
         elevation: 2,
+        titleSpacing: 4,
         title: Row(
           children: [
             Container(
-              width: 34,
-              height: 34,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.templeGold, width: 1.5),
@@ -125,28 +130,35 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Ujjain Live',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.0,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Ujjain Live',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                Text(
-                  _getTitleForTab(_currentIndex),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontWeight: FontWeight.w500,
+                  Text(
+                    _getTitleForTab(_currentIndex),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -162,34 +174,63 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         index: _currentIndex,
         children: _tabs,
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _onTabChanged,
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primary.withValues(alpha: 0.18),
-        elevation: 4,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map_rounded, color: AppColors.primary),
-            label: 'Live Map',
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            border: Border(
+              top: BorderSide(
+                color: AppColors.divider.withValues(alpha: 0.6),
+                width: 0.8,
+              ),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.temple_hindu_outlined),
-            selectedIcon: Icon(Icons.temple_hindu_rounded, color: AppColors.primary),
-            label: 'Temple Guide',
+          child: NavigationBarTheme(
+            data: NavigationBarThemeData(
+              height: 66,
+              indicatorColor: AppColors.primary.withValues(alpha: 0.16),
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                final isSelected = states.contains(WidgetState.selected);
+                return TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  letterSpacing: -0.2,
+                );
+              }),
+            ),
+            child: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: _onTabChanged,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.map_outlined),
+                  selectedIcon: Icon(Icons.map_rounded, color: AppColors.primary),
+                  label: 'Live Map',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.temple_hindu_outlined),
+                  selectedIcon: Icon(Icons.temple_hindu_rounded, color: AppColors.primary),
+                  label: 'Temples',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.event_outlined),
+                  selectedIcon: Icon(Icons.event_available_rounded, color: AppColors.primary),
+                  label: 'Events',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.hotel_outlined),
+                  selectedIcon: Icon(Icons.hotel_rounded, color: AppColors.primary),
+                  label: 'Stays',
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.event_outlined),
-            selectedIcon: Icon(Icons.event_available_rounded, color: AppColors.primary),
-            label: 'Events',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.hotel_outlined),
-            selectedIcon: Icon(Icons.hotel_rounded, color: AppColors.primary),
-            label: 'Stays & Transit',
-          ),
-        ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openChatInterface,

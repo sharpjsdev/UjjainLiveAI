@@ -12,6 +12,8 @@ class SpeechProvider with ChangeNotifier {
   bool _hasPermission = false;
   String _currentSpeechText = '';
   String? _error;
+  String? _currentlySpeakingMessageId;
+  bool _autoSpeakResponse = true;
 
   // Voice settings
   double _speechRate = 0.5;
@@ -23,7 +25,9 @@ class SpeechProvider with ChangeNotifier {
   // Getters
   bool get isInitialized => _isInitialized;
   bool get isListening => _isListening;
-  bool get isSpeaking => _isSpeaking;
+  bool get isSpeaking => _speechService.isSpeaking || _isSpeaking;
+  String? get currentlySpeakingMessageId => _currentlySpeakingMessageId;
+  bool get autoSpeakResponse => _autoSpeakResponse;
   bool get hasPermission => _hasPermission;
   String get currentSpeechText => _currentSpeechText;
   String get lastRecognizedWords => _currentSpeechText.isNotEmpty
@@ -56,6 +60,22 @@ class SpeechProvider with ChangeNotifier {
   Future<void> initialize() async {
     try {
       _clearError();
+
+      // Hook up TTS lifecycle callbacks
+      _speechService.onTtsStart = () {
+        _isSpeaking = true;
+        notifyListeners();
+      };
+      _speechService.onTtsComplete = () {
+        _isSpeaking = false;
+        _currentlySpeakingMessageId = null;
+        notifyListeners();
+      };
+      _speechService.onTtsError = () {
+        _isSpeaking = false;
+        _currentlySpeakingMessageId = null;
+        notifyListeners();
+      };
 
       // Initialize speech service
       _isInitialized = await _speechService.initialize();
@@ -90,6 +110,9 @@ class SpeechProvider with ChangeNotifier {
           ? 'hi-IN'
           : 'en-IN';
 
+      final savedAutoSpeak = preferences['autoSpeakResponse'];
+      _autoSpeakResponse = savedAutoSpeak is bool ? savedAutoSpeak : true;
+
       // Apply settings to speech service
       await _speechService.setSpeechRate(_speechRate);
       await _speechService.setPitch(_speechPitch);
@@ -109,11 +132,24 @@ class SpeechProvider with ChangeNotifier {
         'speechPitch': _speechPitch,
         'speechVolume': _speechVolume,
         'selectedLanguage': _selectedLanguage,
+        'autoSpeakResponse': _autoSpeakResponse,
       });
       await _storageService.saveUserPreferences(preferences);
     } catch (e) {
       print('Error saving speech settings: $e');
     }
+  }
+
+  Future<void> toggleAutoSpeakResponse() async {
+    _autoSpeakResponse = !_autoSpeakResponse;
+    await _saveSettings();
+    notifyListeners();
+  }
+
+  Future<void> setAutoSpeakResponse(bool enabled) async {
+    _autoSpeakResponse = enabled;
+    await _saveSettings();
+    notifyListeners();
   }
 
   Future<String?> startListening({
@@ -183,35 +219,38 @@ class SpeechProvider with ChangeNotifier {
     }
   }
 
-  Future<void> speak(String text) async {
+  Future<void> speak(String text, {String? messageId}) async {
     if (!_isInitialized) {
       await initialize();
     }
 
     if (text.trim().isEmpty) return;
 
+    // Cancel mic listening if active to avoid picking up speaker output
+    if (_isListening) {
+      await stopListening();
+    }
+
     try {
       _clearError();
       _isSpeaking = true;
+      _currentlySpeakingMessageId = messageId;
       notifyListeners();
 
       await _speechService.speak(text);
-
-      // Note: _isSpeaking will be set to false by the TTS completion handler
-      // We don't set it here because speech might still be ongoing
     } catch (e) {
       _isSpeaking = false;
+      _currentlySpeakingMessageId = null;
       _setError('Text-to-speech failed: $e');
       notifyListeners();
     }
   }
 
   Future<void> stopSpeaking() async {
-    if (_isSpeaking) {
-      await _speechService.stopSpeaking();
-      _isSpeaking = false;
-      notifyListeners();
-    }
+    await _speechService.stopSpeaking();
+    _isSpeaking = false;
+    _currentlySpeakingMessageId = null;
+    notifyListeners();
   }
 
   Future<void> pauseSpeaking() async {

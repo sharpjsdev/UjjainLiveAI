@@ -446,11 +446,9 @@ class _ChatInputState extends State<ChatInput> with TickerProviderStateMixin {
 
     // ═════════════════════════════════════════════════════════════════
     // WORKFLOW RULE:
-    // When user pauses for 1–2 seconds:
-    // - Preserve transcript in _textController!
-    // - Do NOT submit to AI!
-    // - Do NOT clear previous words!
-    // - Microphone turns off, ready for user to continue speaking or click Submit.
+    // Microphone stays ACTIVE continuously across pauses/breaths.
+    // It ONLY stops when user explicitly taps Stop Mic or Submits the message.
+    // Transcript is preserved in _textController at all times.
     // ═════════════════════════════════════════════════════════════════
     if (_textController.text.trim().isEmpty && _isListening) {
       _handleSpeechFailure(speechProvider, elapsed);

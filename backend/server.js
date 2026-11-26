@@ -92,6 +92,44 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ══════════════════════════════════════════════════════════════════════
+  // SYNC MASTER KNOWLEDGE CONTEXT FROM FILE TO MYSQL
+  // ══════════════════════════════════════════════════════════════════════
+  if (pathname === '/api/sync-context' && req.method === 'POST') {
+    try {
+      const candidates = [
+        path.join(__dirname, '..', 'ujjaincontext'),
+        path.join(__dirname, 'data', 'knowledge_context.json'),
+      ];
+      let content = '';
+      for (const p of candidates) {
+        if (fs.existsSync(p)) {
+          content = fs.readFileSync(p, 'utf8').trim();
+          break;
+        }
+      }
+      if (!content) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Master context file (ujjaincontext) not found' }));
+        return;
+      }
+      await pool.query(
+        "INSERT INTO `knowledge_context` (`id`, `title`, `category`, `content`, `updated_at`) " +
+        "VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP) " +
+        "ON DUPLICATE KEY UPDATE `title` = VALUES(`title`), `category` = VALUES(`category`), `content` = VALUES(`content`), `updated_at` = CURRENT_TIMESTAMP",
+        ['ujjain_city_guide', 'Ujjain City AI Guide - Master Knowledge Context', 'city_guide', content]
+      );
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ success: true, message: 'Master knowledge context synced from file successfully!', length: content.length }));
+      return;
+    } catch (e) {
+      console.error('[Sync Context Error]:', e);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: e.message }));
+      return;
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
   // REST API ROUTING FOR MYSQL DATABASE
   // /api/temples
   // /api/events

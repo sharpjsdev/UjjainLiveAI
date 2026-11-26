@@ -119,6 +119,10 @@ async function initDatabase() {
           const insertSql = 'INSERT INTO `knowledge_context` (`id`, `title`, `category`, `content`) VALUES (?, ?, ?, ?)';
           await conn.query(insertSql, [ctx.id, ctx.title, ctx.category || 'temple_guide', ctx.content]);
           console.log(`[MySQL] Seeded '${ctx.id}' knowledge context into MySQL database`);
+        } else {
+          const updateSql = 'UPDATE `knowledge_context` SET `content` = ?, `title` = ?, `category` = ?, `updated_at` = CURRENT_TIMESTAMP WHERE `id` = ?';
+          await conn.query(updateSql, [ctx.content, ctx.title, ctx.category || 'temple_guide', ctx.id]);
+          console.log(`[MySQL] Synced '${ctx.id}' with latest master knowledge context`);
         }
       }
     }

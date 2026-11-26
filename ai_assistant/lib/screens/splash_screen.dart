@@ -157,7 +157,7 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed('/home');
+    Navigator.of(context).pushReplacementNamed('/chat');
   }
 
   @override

@@ -24,6 +24,12 @@ class ChatProvider with ChangeNotifier {
   LocationInfo? _currentLocation;
   bool _isOnline = true;
 
+  /// Callback triggered whenever a complete assistant response is delivered.
+  void Function(Message message)? onResponseReceived;
+
+  // Live ujjain_city_guide context — loaded from backend MySQL, falls back to agent const
+  String _ujjainContext = UjjainGuideAgent.systemInstructions;
+
   // Getters
   bool get isInitialized => _isInitialized;
   List<ChatSession> get chatSessions => _chatSessions;
@@ -45,25 +51,53 @@ class ChatProvider with ChangeNotifier {
       await _loadChatSessions();
       await _getCurrentLocation();
 
-      // Seed / verify Mahakaleshwar knowledge context in local storage
-      final cachedContext = await _storageService.getKnowledgeContext('mahakaleshwar_temple');
-      if (cachedContext == null || cachedContext.isEmpty) {
-        await _storageService.saveKnowledgeContext(
-          'mahakaleshwar_temple',
-          UjjainGuideAgent.systemInstructions,
-        );
+      // ----------------------------------------------------------------
+      // CONTEXT LOADING: Fetch ujjain_city_guide from MySQL backend FIRST.
+      // On success  -> live backend content drives all AI responses.
+      // On failure  -> fall back to cached (SharedPrefs) or bundled const.
+      // ----------------------------------------------------------------
+      try {
+        final remoteCtx = await SimhasthaBackendService()
+            .fetchKnowledgeContext('ujjain_city_guide');
+        if (remoteCtx != null && remoteCtx.trim().isNotEmpty) {
+          _ujjainContext = remoteCtx;
+          await _storageService.saveKnowledgeContext('ujjain_city_guide', remoteCtx);
+          print('[ChatProvider] ✅ ujjain_city_guide loaded from backend MySQL');
+        } else {
+          // Backend empty — try local cache
+          final cached = await _storageService.getKnowledgeContext('ujjain_city_guide');
+          if (cached != null && cached.trim().isNotEmpty) {
+            _ujjainContext = cached;
+            print('[ChatProvider] 📱 ujjain_city_guide loaded from SharedPrefs cache');
+          } else {
+            await _storageService.saveKnowledgeContext(
+                'ujjain_city_guide', UjjainGuideAgent.systemInstructions);
+            print('[ChatProvider] 📖 Using bundled ujjain_city_guide constant');
+          }
+        }
+      } catch (ctxErr) {
+        // Network unavailable — try local cache, then bundled
+        final cached = await _storageService.getKnowledgeContext('ujjain_city_guide');
+        if (cached != null && cached.trim().isNotEmpty) {
+          _ujjainContext = cached;
+          print('[ChatProvider] 📱 Using cached ujjain_city_guide (backend error: $ctxErr)');
+        } else {
+          print('[ChatProvider] 📖 Using bundled ujjain_city_guide (no cache: $ctxErr)');
+        }
       }
 
-      // Sync latest knowledge contexts from Node.js MySQL backend in background
-      for (final ctxId in ['mahakaleshwar_temple', 'harsiddhi_temple', 'kal_bhairav_temple', 'chintaman_ganesh_temple', 'gadkalika_temple', 'sandipani_ashram']) {
-        SimhasthaBackendService().fetchKnowledgeContext(ctxId).then((remote) {
-          if (remote != null && remote.trim().isNotEmpty) {
-            _storageService.saveKnowledgeContext(ctxId, remote);
-            print('[ChatProvider] ✅ Synced latest $ctxId context from MySQL backend');
+      // Push loaded context into the AI service layer (online + offline)
+      _aiService.setKnowledgeContext(_ujjainContext);
+
+      // Background sync for supplementary temple contexts
+      for (final ctxId in ['mahakaleshwar_temple', 'harsiddhi_temple',
+          'kal_bhairav_temple', 'chintaman_ganesh_temple',
+          'gadkalika_temple', 'sandipani_ashram']) {
+        SimhasthaBackendService().fetchKnowledgeContext(ctxId).then((r) {
+          if (r != null && r.trim().isNotEmpty) {
+            _storageService.saveKnowledgeContext(ctxId, r);
           }
-        }).catchError((e) {
-          print('[ChatProvider] ℹ️ Using local $ctxId context ($e)');
-        });
+        }).catchError((_) {});
       }
 
       // Sync initial online/offline state directly from the service
@@ -213,6 +247,9 @@ class ChatProvider with ChangeNotifier {
       );
       _updateSessionInList(_currentSession!);
       await _storageService.saveChatSession(_currentSession!);
+
+      // Notify callback for automated features (e.g. Auto-Listen TTS)
+      onResponseReceived?.call(responseMessage);
 
       // Asynchronously log Q&A to backend database (MySQL chat_logs)
       SimhasthaBackendService().logChatInteraction(

@@ -183,6 +183,9 @@
     <button class="tab-btn" onclick="switchTab('stays')">
       <span>🏨</span> Stays, Dharamshalas & Transit
     </button>
+    <button class="tab-btn" onclick="switchTab('context')">
+      <span>🧠</span> AI Knowledge Context & Prompts
+    </button>
     <button class="tab-btn" onclick="switchTab('chat-logs')">
       <span>💬</span> User Chat Logs (Q&A)
     </button>
@@ -190,14 +193,40 @@
 
   <main>
     <div class="action-bar">
-      <input type="text" id="searchBox" class="search-box" placeholder="Search entries..." onkeyup="renderCurrentData()">
-      <button class="btn btn-primary" onclick="openAddModal()">
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <input type="text" id="searchBox" class="search-box" placeholder="Search entries..." onkeyup="renderCurrentData()">
+        <button id="syncFileBtn" class="btn btn-secondary" onclick="syncMasterContextFromFile()" style="display: none;">
+          <span>🔄</span> Sync Master from File
+        </button>
+      </div>
+      <button id="addEntryBtn" class="btn btn-primary" onclick="openAddModal()">
         <span>+</span> Add New Entry
       </button>
     </div>
 
     <div id="dataGrid" class="data-grid"></div>
   </main>
+
+  <!-- View Full Context Modal -->
+  <div id="fullViewOverlay" class="modal-overlay">
+    <div class="modal-content" style="max-width: 920px;">
+      <div class="modal-title">
+        <span id="fullViewHeaderTitle">Knowledge Context Details</span>
+        <button class="close-btn" onclick="closeFullViewModal()">&times;</button>
+      </div>
+      <div id="fullViewMeta" style="margin-bottom: 14px; font-size: 13px; color: var(--gold-light);"></div>
+      <div style="position: relative;">
+        <button class="btn btn-secondary btn-sm" onclick="copyFullViewContent()" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+          📋 Copy Full Prompt
+        </button>
+        <pre id="fullViewContent" style="background: #0a0604; border: 1px solid var(--border); border-radius: 8px; padding: 18px; color: #eceff1; font-family: 'Consolas', monospace; font-size: 12.5px; line-height: 1.5; max-height: 55vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word;"></pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeFullViewModal()">Close</button>
+        <button type="button" class="btn btn-primary" id="fullViewEditBtn">✏️ Edit this Prompt</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Dynamic Modal for CRUD -->
   <div id="modalOverlay" class="modal-overlay">
@@ -240,8 +269,10 @@
       currentTab = tab;
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.currentTarget.classList.add('active');
-      const addBtn = document.querySelector('.action-bar .btn-primary');
+      const addBtn = document.getElementById('addEntryBtn') || document.querySelector('.action-bar .btn-primary');
+      const syncBtn = document.getElementById('syncFileBtn');
       if (addBtn) addBtn.style.display = (tab === 'chat-logs') ? 'none' : 'inline-flex';
+      if (syncBtn) syncBtn.style.display = (tab === 'context') ? 'inline-flex' : 'none';
       loadData();
     }
 
@@ -330,6 +361,39 @@
               <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
             </div>
           `;
+        } else if (currentTab === 'context') {
+          const charCount = (item.content || '').length;
+          const wordCount = (item.content || '').trim().split(/\s+/).filter(Boolean).length;
+          const updatedDate = item.updated_at ? new Date(item.updated_at).toLocaleString() : (item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A');
+          const previewSnippet = escapeHtml((item.content || '').slice(0, 320)) + (charCount > 320 ? '...' : '');
+
+          card.innerHTML = `
+            <div>
+              <div class="item-header">
+                <div>
+                  <div class="item-title" style="color: var(--gold-light); font-size: 16px;">🧠 ${escapeHtml(item.title || 'Knowledge Context')}</div>
+                  <div style="margin-top: 5px; display: inline-block; background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; color: var(--gold); border: 1px solid rgba(212,175,55,0.3);">
+                    🔑 ID: <strong>${escapeHtml(item.id)}</strong>
+                  </div>
+                </div>
+                <span class="item-badge" style="background: rgba(33, 150, 243, 0.15); border-color: #2196F3; color: #64B5F6;">${(item.category || 'context').toUpperCase()}</span>
+              </div>
+              <div style="display: flex; gap: 14px; font-size: 12px; color: var(--text-muted); margin: 10px 0;">
+                <span>📊 <strong>${charCount.toLocaleString()}</strong> chars</span>
+                <span>📖 <strong>${wordCount.toLocaleString()}</strong> words</span>
+                <span>🕒 ${updatedDate}</span>
+              </div>
+              <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px; line-height: 1.45; color: #cfd8dc; max-height: 140px; overflow-y: hidden; white-space: pre-wrap; position: relative;">
+                ${previewSnippet}
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 35px; background: linear-gradient(transparent, rgba(27, 18, 11, 0.95)); pointer-events: none;"></div>
+              </div>
+            </div>
+            <div class="item-actions">
+              <button class="btn btn-secondary btn-sm" onclick="viewFullContext('${escapeHtml(item.id)}')">View Full</button>
+              <button class="btn btn-primary btn-sm" onclick="editItem('${escapeHtml(item.id)}')">Edit Prompt</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteItem('${escapeHtml(item.id)}')">Delete</button>
+            </div>
+          `;
         } else if (currentTab === 'chat-logs') {
           const dateStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
           const voiceBadge = item.is_voice ? '🎙️ Voice' : '⌨️ Text';
@@ -361,7 +425,9 @@
 
     function openAddModal() {
       document.getElementById('formId').value = '';
-      document.getElementById('modalHeaderTitle').innerText = `Add New ${currentTab.toUpperCase()}`;
+      document.getElementById('modalHeaderTitle').innerText = currentTab === 'context' ? 'Add New AI Knowledge Context Prompt' : `Add New ${currentTab.toUpperCase()}`;
+      const modalBox = document.querySelector('#modalOverlay .modal-content');
+      if (modalBox) modalBox.style.maxWidth = currentTab === 'context' ? '920px' : '650px';
       renderFormFields();
       document.getElementById('modalOverlay').classList.add('open');
     }
@@ -370,13 +436,78 @@
       const item = rawData.find(x => x.id === id || x.templeId === id);
       if (!item) return;
       document.getElementById('formId').value = id;
-      document.getElementById('modalHeaderTitle').innerText = `Edit ${currentTab.toUpperCase()}`;
+      document.getElementById('modalHeaderTitle').innerText = currentTab === 'context' ? `Edit AI Knowledge Context: ${item.title || item.id}` : `Edit ${currentTab.toUpperCase()}`;
+      const modalBox = document.querySelector('#modalOverlay .modal-content');
+      if (modalBox) modalBox.style.maxWidth = currentTab === 'context' ? '920px' : '650px';
       renderFormFields(item);
       document.getElementById('modalOverlay').classList.add('open');
     }
 
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function viewFullContext(id) {
+      const item = rawData.find(x => x.id === id);
+      if (!item) return;
+      document.getElementById('fullViewHeaderTitle').innerText = item.title || 'Knowledge Context';
+      document.getElementById('fullViewMeta').innerHTML = `
+        <strong>Key / ID:</strong> <code>${escapeHtml(item.id)}</code> &nbsp;|&nbsp; 
+        <strong>Category:</strong> ${escapeHtml(item.category || 'general')} &nbsp;|&nbsp; 
+        <strong>Characters:</strong> ${(item.content || '').length.toLocaleString()} &nbsp;|&nbsp;
+        <strong>Last Updated:</strong> ${item.updated_at ? new Date(item.updated_at).toLocaleString() : 'N/A'}
+      `;
+      document.getElementById('fullViewContent').innerText = item.content || '';
+      document.getElementById('fullViewEditBtn').onclick = () => {
+        closeFullViewModal();
+        editItem(item.id);
+      };
+      document.getElementById('fullViewOverlay').classList.add('open');
+    }
+
+    function closeFullViewModal() {
+      document.getElementById('fullViewOverlay').classList.remove('open');
+    }
+
+    function copyFullViewContent() {
+      const text = document.getElementById('fullViewContent').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('📋 Full prompt copied to clipboard!');
+      }).catch(() => {
+        alert('Failed to copy');
+      });
+    }
+
+    function updateContentStats(textarea) {
+      const text = textarea.value || '';
+      const charCount = text.length;
+      const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+      const charDisplay = document.getElementById('charCountDisplay');
+      const wordDisplay = document.getElementById('wordCountDisplay');
+      if (charDisplay) charDisplay.innerText = charCount.toLocaleString();
+      if (wordDisplay) wordDisplay.innerText = wordCount.toLocaleString();
+    }
+
+    async function syncMasterContextFromFile() {
+      if (!confirm('Sync the master ujjaincontext file into MySQL? This will update the "ujjain_city_guide" knowledge context with the latest master file content.')) return;
+      const syncBtn = document.getElementById('syncFileBtn');
+      try {
+        syncBtn.disabled = true;
+        syncBtn.innerText = 'Syncing...';
+        const res = await fetch('/api/sync-context', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert('✅ ' + data.message + (data.length ? ` (${data.length.toLocaleString()} characters)` : ''));
+          loadData();
+        } else {
+          alert('❌ Sync failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('❌ Network error: ' + e.message);
+      } finally {
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = '<span>🔄</span> Sync Master from File';
+      }
     }
 
     function renderFormFields(data = {}) {
@@ -428,6 +559,46 @@
           <div class="form-group"><label>Contact Phone</label><input class="form-control" name="contact" value="${data.contact || ''}"></div>
           <div class="form-group"><label>Description</label><textarea class="form-control" name="description">${data.description || ''}</textarea></div>
         `;
+      } else if (currentTab === 'context') {
+        const isEdit = !!data.id;
+        const initialContent = data.content || '';
+        const charCount = initialContent.length;
+        const wordCount = initialContent.trim() ? initialContent.trim().split(/\s+/).filter(Boolean).length : 0;
+
+        c.innerHTML = `
+          <div class="form-group">
+            <label>Context ID (Unique Key used by AI & Flutter App)</label>
+            <input class="form-control" name="id" id="contextIdInput" value="${escapeHtml(data.id || '')}" 
+              placeholder="e.g. ujjain_city_guide" ${isEdit ? 'readonly style="opacity: 0.7; background: #140d07;"' : 'required'}>
+            <small style="color: var(--text-muted); font-size: 11px;">⚠️ Note: <code>ujjain_city_guide</code> is the master prompt automatically fetched by the mobile app on startup.</small>
+          </div>
+          <div class="form-group">
+            <label>Prompt Title</label>
+            <input class="form-control" name="title" value="${escapeHtml(data.title || '')}" placeholder="e.g. Ujjain City AI Guide - Master Knowledge Context" required>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select class="form-control" name="category">
+              <option value="city_guide" ${data.category === 'city_guide' ? 'selected' : ''}>City Guide (Master)</option>
+              <option value="temple_guide" ${data.category === 'temple_guide' ? 'selected' : ''}>Temple Guide</option>
+              <option value="emergency_advisory" ${data.category === 'emergency_advisory' ? 'selected' : ''}>Emergency & Advisories</option>
+              <option value="snan_rules" ${data.category === 'snan_rules' ? 'selected' : ''}>Shahi Snan & Muhurat</option>
+              <option value="custom" ${data.category === 'custom' ? 'selected' : ''}>Custom Knowledge Prompt</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <label style="margin: 0;">AI Knowledge Context & Prompt Instructions (Markdown supported)</label>
+              <div id="contentStatsBadge" style="font-size: 11px; color: var(--gold); font-weight: 600;">
+                <span id="charCountDisplay">${charCount.toLocaleString()}</span> chars | <span id="wordCountDisplay">${wordCount.toLocaleString()}</span> words
+              </div>
+            </div>
+            <textarea class="form-control" name="content" id="contextContentTextarea" required
+              style="min-height: 380px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.5; background: #0c0804; color: #eceff1;"
+              placeholder="Write the full AI prompt, guidelines, darshan rules, Bhasma Aarti procedures, and Simhastha knowledge context..."
+              oninput="updateContentStats(this)">${escapeHtml(data.content || '')}</textarea>
+          </div>
+        `;
       }
     }
 
@@ -458,6 +629,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
+        }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          alert('❌ Save failed: ' + (errData.error || res.statusText));
+          return;
         }
         closeModal();
         loadData();

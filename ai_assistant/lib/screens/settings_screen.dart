@@ -37,6 +37,8 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             children: [
               _buildSectionHeader('Spiritual Voice Controls'),
+              _buildAutoListenTile(speechProvider),
+              const SizedBox(height: 10),
               _buildSpeechRateSlider(speechProvider),
               const SizedBox(height: 10),
               _buildSpeechPitchSlider(speechProvider),
@@ -334,6 +336,34 @@ class SettingsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAutoListenTile(SpeechProvider speechProvider) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: SwitchListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        title: const Text(
+          'Auto-Listen to Responses',
+          style: TextStyle(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        subtitle: const Text(
+          'Automatically read out AI responses aloud when they arrive (ऑटो स्पीक)',
+          style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+        ),
+        value: speechProvider.autoSpeakResponse,
+        activeColor: AppColors.primary,
+        onChanged: (value) => speechProvider.setAutoSpeakResponse(value),
       ),
     );
   }

@@ -1,425 +1,233 @@
-# 🕉️ Simhastha AI Assistant - Phone Testing with ngrok
+# 🕉️ Ujjain Live - Simhastha 2028 AI Assistant
 
-Complete setup for testing your Simhastha AI Assistant APK on physical phones using ngrok.
+<p align="center">
+  <b>॥ हर हर महादेव • जय श्री महाकाल ॥</b><br>
+  <i>Your Intelligent Digital Pilgrim Companion to Sacred Ujjain & Simhastha Mahakumbh 2028</i>
+</p>
 
----
-
-## 🎯 What's This?
-
-This project now supports **testing on physical phones** by exposing your local backend to the internet via **ngrok**. This means you can:
-
-- ✅ Build an APK and test on your real phone
-- ✅ Test over cellular data (not just WiFi)
-- ✅ Share the same backend with multiple test devices
-- ✅ Test from anywhere, not just your local network
-
----
-
-## 🚀 Quick Start (3 Steps)
-
-### 1. Start Backend & ngrok (2 minutes)
-
-```bash
-cd "e:\AI app\backend"
-start_ngrok.bat
-```
-
-**Output:** Two terminals will open:
-- Terminal 1: Backend server running on port 3000
-- Terminal 2: ngrok tunnel with public URL
-
-**Copy the ngrok HTTPS URL** (looks like: `https://a1b2-c3d4.ngrok-free.app`)
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white" alt="Dart" />
+  <img src="https://img.shields.io/badge/Google_Gemini-8E75C2?style=for-the-badge&logo=google&logoColor=white" alt="Google Gemini" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
+</p>
 
 ---
 
-### 2. Build APK (3 minutes)
+## 📱 App Showcase
 
-```bash
-cd "e:\AI app\ai_assistant"
-build_for_phone.bat
-```
-
-**When prompted:**
-- Override backend URL? → `y`
-- Enter ngrok URL → Paste your ngrok URL
-
-**Output:** APK file at `build\app\outputs\flutter-apk\app-release.apk`
-
----
-
-### 3. Install & Test (2 minutes)
-
-**Transfer APK to phone:**
-- USB cable → Copy to Downloads
-- Email → Send to yourself
-- Cloud → Upload to Drive/Dropbox
-- ADB → `adb install -r build\app\outputs\flutter-apk\app-release.apk`
-
-**Launch app and test!**
-
----
-
-## 📚 Documentation
-
-We've created extensive documentation to help you:
-
-### 📖 Start Here
-
-**New to this?** → Read **[START_HERE.md](START_HERE.md)**
-
-This is your navigation hub to all other documentation.
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="33%">
+        <b>🌟 Divine Splash & Identity</b><br>
+        <sub>Sacred Kalash emblem & Simhastha 2028 hub</sub><br><br>
+        <img src="readmeasset/Image%20(3).jpg" alt="Divine Splash Screen" width="270" />
+      </td>
+      <td align="center" width="33%">
+        <b>🏛️ Pilgrimage Guide & Prompts</b><br>
+        <sub>Curated Darshan, Bhasma Aarti & Shahi Snan</sub><br><br>
+        <img src="readmeasset/Image%20(4).jpg" alt="Home Screen Guide" width="270" />
+      </td>
+      <td align="center" width="33%">
+        <b>💬 AI Voice Chat & Live Maps</b><br>
+        <sub>Direct answers, Auto-Listen & Dynamic Google Maps</sub><br><br>
+        <img src="readmeasset/Image%20(5).jpg" alt="AI Chat & Navigation" width="270" />
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-### 📘 Main Guides
+## 🌟 Key Highlights & Features
 
-1. **[README_PHONE_TESTING.md](README_PHONE_TESTING.md)** - Overview & 3 testing methods
-2. **[QUICK_NGROK_REFERENCE.md](QUICK_NGROK_REFERENCE.md)** - Commands & quick reference
-3. **[COMPLETE_TESTING_WORKFLOW.md](COMPLETE_TESTING_WORKFLOW.md)** - Detailed step-by-step
-4. **[VISUAL_SETUP_GUIDE.md](VISUAL_SETUP_GUIDE.md)** - Visual diagrams & illustrations
-5. **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Verification checklist
+### ⚡ 1. Dual AI Engine (Online & Offline)
+- **Online Mode (Google Gemini)**: Powered by Google Gemini (`gemini-3.5-flash-lite` / `gemini-3.8-flash`) delivering ultra-fast, direct, and concise spiritual answers. Dynamically augmented with verified knowledge from the MySQL database (`ujjain_city_guide`).
+- **Offline Darshan Mode**: When internet connectivity drops in crowded temple corridors or ghats, the app seamlessly switches to an embedded offline knowledge base with 18+ temples, timings, and local data.
+
+### 🗣️ 2. Intelligent Voice & Auto-Listen (Speech-to-Text & Text-to-Speech)
+- **Continuous Voice Input**: Speak your pilgrimage questions naturally in Hindi or English using advanced Speech-to-Text.
+- **Auto-Listen to Responses**: As soon as the AI response arrives, the app automatically reads the answer aloud via Text-to-Speech (TTS).
+- **Clean Audio Processing**: Strips raw URLs and technical markdown symbols before speaking so the voice audio sounds natural and clean.
+- **Instant Controls**: Toggle Auto-Listen on/off directly from the top AppBar (`[🔊 Listen ON]` / `[🔇 Listen OFF]`) or stop playback anytime with the `[■ Stop]` button on the message bubble.
+
+### 🗺️ 3. Accurate Dynamic Google Maps Navigation
+- **No Coordinate Drift**: Eliminates inaccurate static lat/long coordinates that often drop pins on open roads.
+- **Verified Place Queries**: The AI dynamically formats clickable Google Maps links using official place name queries:
+  - **Accommodations & Temples**: `https://www.google.com/maps/search/?api=1&query={Place+Name}+Ujjain`
+  - **Turn-by-Turn Navigation**: `https://www.google.com/maps/dir/?api=1&destination={Destination}+Ujjain`
+- One-tap opens the verified Google Business profile with official entrance gates, photos, live reviews, and direct routing.
+
+### 🛕 4. Comprehensive Sacred Knowledge
+- **Mahakaleshwar Jyotirlinga**: Bhasma Aarti booking rules, online slot guidelines, entry gates, and darshan timings.
+- **Simhastha 2028 Kumbh Mela**: Shahi Snan auspicious dates, Ram Ghat & Triveni Ghat details, Akhara traditions.
+- **18+ Sacred Temples**: Kal Bhairav, Harsiddhi Mata (Shaktipeeth), Chintaman Ganesh, Gadkalika, Sandipani Ashram, Mangalnath, and more.
+- **Pilgrim Amenities**: Verified hotels, Dharamshalas, Ashrams, Sattvic pure vegetarian dining, and temple Annakshetra information.
 
 ---
 
-### 🛠️ Helper Scripts
+## 🏗️ System Architecture
 
-Located in your project folders:
+```mermaid
+graph TD
+    User([📱 Pilgrim User]) -->|Spoken Voice / Text| App[Flutter Mobile App - Ujjain Live]
+    
+    subgraph Frontend [Mobile Client - Flutter]
+        App --> VoiceService[Speech-to-Text & TTS Engine]
+        App --> QueryAgent[Intelligent Query Agent]
+        App --> HybridAI[Hybrid AI Router]
+    end
 
-| Script | Location | Purpose |
-|--------|----------|---------|
-| `start_ngrok.bat` | `backend/` | Start backend + ngrok |
-| `test_api.bat` | `backend/` | Test all API endpoints |
-| `build_for_phone.bat` | `ai_assistant/` | Interactive APK builder |
+    subgraph Dual Engine AI
+        HybridAI -->|Internet Available| GeminiAPI[Google Gemini API]
+        HybridAI -->|Offline Mode| LocalDB[(Offline Embedded Knowledge Base)]
+    end
 
-**Usage:**
-```bash
-# Start everything
-cd "e:\AI app\backend"
-start_ngrok.bat
+    subgraph Backend Services
+        GeminiAPI -.->|Dynamic Context Sync| Backend[Node.js / Express Server]
+        Backend --> DB[(MySQL Database - ujjain_city_guide)]
+        Backend -.->|Tunnel for Physical Phone Testing| ngrok[ngrok Secure Tunnel]
+        ngrok -.-> App
+    end
 
-# Test APIs
-test_api.bat https://your-ngrok-url.ngrok-free.app
-
-# Build APK
-cd "e:\AI app\ai_assistant"
-build_for_phone.bat
+    App -->|1-Tap Navigation| GMaps[Google Maps App]
 ```
 
 ---
 
-### 🔧 Technical Details
+## 📂 Project Structure
 
-**Backend:** `backend/README_NGROK.md` - Complete ngrok setup & configuration
-
----
-
-## 🎯 Three Testing Methods
-
-### Method 1: ngrok (Remote Testing) ⭐ Recommended
-
-**Use when:** Testing from anywhere, sharing with others
-
-```bash
-# 1. Start services
-start_ngrok.bat
-
-# 2. Update app with ngrok URL
-# Edit: lib/constants/app_constants.dart
-
-# 3. Build & install
-build_for_phone.bat
-```
-
-**Pros:** Works anywhere, shareable  
-**Cons:** URL changes on restart
-
----
-
-### Method 2: Local WiFi (Fastest)
-
-**Use when:** Quick testing on same network
-
-```bash
-# 1. Find your IP
-ipconfig  # Look for 192.168.x.x
-
-# 2. Start backend
-node server.js
-
-# 3. Update app with: http://192.168.x.x:3000
-
-# 4. Build & test
-```
-
-**Pros:** Faster, no ngrok  
-**Cons:** Same WiFi only
-
----
-
-### Method 3: Build-Time Override (No Editing)
-
-**Use when:** Testing without editing files
-
-```bash
-flutter build apk --release \
-  --dart-define=BACKEND_URL=https://your-ngrok-url.ngrok-free.app
-```
-
-**Pros:** No file changes  
-**Cons:** Must specify each time
-
----
-
-## 📁 Project Structure
-
-```
-e:\AI app\
+```text
+AI app/
+├── readmeasset/                    # Screenshots showcased in README
+│   ├── Image (3).jpg              # Divine Splash Screen
+│   ├── Image (4).jpg              # Pilgrimage Guide & Prompts
+│   └── Image (5).jpg              # Live AI Chat & Google Maps
 │
-├─ 📘 START_HERE.md                    → Start here!
-├─ 📗 README_PHONE_TESTING.md          → Testing guide
-├─ 📙 QUICK_NGROK_REFERENCE.md         → Quick commands
-├─ 📕 COMPLETE_TESTING_WORKFLOW.md     → Detailed guide
-├─ 📓 VISUAL_SETUP_GUIDE.md            → Visual diagrams
-├─ 📋 TESTING_CHECKLIST.md             → Verification checklist
-├─ 📄 IMPLEMENTATION_SUMMARY.md        → What changed
+├── ai_assistant/                   # Flutter Mobile Application
+│   ├── assets/                     # App icons, logos, and local assets
+│   ├── lib/
+│   │   ├── agents/                 # Ujjain Guide Agent & system prompts
+│   │   ├── constants/              # App colors, themes, API keys, URLs
+│   │   ├── models/                 # Chat session, message & location models
+│   │   ├── providers/              # State management (Chat, Speech)
+│   │   ├── screens/                # Chat, City Guide, Map, Settings screens
+│   │   ├── services/               # Gemini AI, Offline AI, Speech, Location
+│   │   └── widgets/                # Message bubbles, chat inputs, map widgets
+│   ├── build_apk_now.bat           # 1-Click release APK builder
+│   └── build_for_phone.bat         # Interactive APK builder for physical phones
 │
-├─ backend/
-│  ├─ 📄 README_NGROK.md               → ngrok details
-│  ├─ 🚀 start_ngrok.bat               → Start script
-│  ├─ 🧪 test_api.bat                  → Test script
-│  ├─ 🖥️  server.js                     → Backend (Node.js)
-│  ├─ 🐍 server.py                     → Backend (Python)
-│  ├─ 🗄️  schema.sql                    → Database schema
-│  └─ ⚙️  .env.example                  → Config template
+├── backend/                        # Node.js + Express Backend Server
+│   ├── server.js                   # REST API server & database connector
+│   ├── sync_db_context.js          # Synchronizes ujjain_city_guide with MySQL
+│   ├── start_ngrok.bat             # 1-Click backend + ngrok tunnel launcher
+│   └── test_api.bat                # Endpoint testing script
 │
-└─ ai_assistant/
-   ├─ 🔨 build_for_phone.bat           → APK builder
-   ├─ lib/
-   │  ├─ constants/
-   │  │  └─ app_constants.dart         → Backend URL config
-   │  └─ services/
-   │     └─ simhastha_backend_service.dart
-   └─ build/app/outputs/flutter-apk/
-      └─ app-release.apk               → Your APK
+├── README.md                       # Main Project Documentation
+└── README_PHONE_TESTING.md         # Dedicated physical phone testing guide
 ```
 
 ---
 
-## 🎓 Learning Path
+## 🚀 Getting Started
 
-### First Time (1 hour)
+### Prerequisites
+- **Flutter SDK**: `>= 3.10.0` ([Install Flutter](https://docs.flutter.dev/get-started/install))
+- **Node.js**: `>= 18.x` & npm ([Install Node.js](https://nodejs.org/))
+- **MySQL Server**: Local or hosted MySQL database
+- **Google Gemini API Key**: Free key from [Google AI Studio](https://aistudio.google.com/)
 
-1. **Read:** [START_HERE.md](START_HERE.md) - Navigation guide
-2. **Read:** [VISUAL_SETUP_GUIDE.md](VISUAL_SETUP_GUIDE.md) - See how it works
-3. **Do:** Install ngrok
+---
+
+### Step 1: Set Up Backend Server
+
+1. Navigate to the backend directory and install dependencies:
    ```bash
-   choco install ngrok
-   ngrok config add-authtoken YOUR_TOKEN
+   cd "backend"
+   npm install
    ```
-4. **Do:** First test
+
+2. Configure database credentials in `backend/server.js` or environment variables:
+   ```javascript
+   const dbConfig = {
+     host: 'localhost',
+     user: 'root',
+     password: 'YOUR_MYSQL_PASSWORD',
+     database: 'simhastha_guide'
+   };
+   ```
+
+3. Synchronize knowledge context:
    ```bash
-   cd "e:\AI app\backend"
+   node sync_db_context.js
+   ```
+
+4. Start backend with ngrok (for physical phone testing):
+   ```bash
    start_ngrok.bat
-   # Then build APK and test!
+   ```
+   *Copy your generated ngrok HTTPS URL (e.g., `https://xxxx.ngrok-free.app`).*
+
+---
+
+### Step 2: Set Up & Run Flutter App
+
+1. Navigate to the Flutter app directory:
+   ```bash
+   cd "ai_assistant"
+   flutter pub get
+   ```
+
+2. Configure API Key & Backend URL in `lib/constants/app_constants.dart`:
+   ```dart
+   static const String openAiApiKey = 'YOUR_GEMINI_API_KEY';
+   static const String backendBaseUrl = 'https://your-ngrok-url.ngrok-free.app';
+   ```
+
+3. Run on a connected device / emulator:
+   ```bash
+   flutter run
    ```
 
 ---
 
-### Daily Testing (10 minutes)
+## 📦 Building Release APK
 
-1. **Reference:** [QUICK_NGROK_REFERENCE.md](QUICK_NGROK_REFERENCE.md)
-2. **Run:** `start_ngrok.bat`
-3. **Build:** `build_for_phone.bat`
-4. **Test:** Install and verify
+To generate a standalone release APK for testing on physical Android devices:
 
----
-
-## ✅ Verification
-
-Your setup is working when:
-
-✅ **Backend terminal shows:**
-```
-Server Running on Port: 3000
-```
-
-✅ **ngrok terminal shows:**
-```
-Session Status: online
-Forwarding: https://xxxx.ngrok-free.app
-```
-
-✅ **Browser shows JSON:**
-```
-https://your-ngrok-url.ngrok-free.app/api/temples
-```
-
-✅ **App loads data:**
-- Temple cards visible
-- Events displayed
-- Stays listed
-- No connection errors
-
-✅ **Logs confirm:**
-```
-[Backend] ✅ Got 3 temples from backend MySQL!
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Problem: "Failed to connect"
-
-**Check:**
-1. Backend running? (Terminal shows "Server Running")
-2. ngrok running? (Terminal shows "Session Status: online")
-3. URL correct in app_constants.dart?
-4. APK rebuilt after URL change?
-
-**Solution:**
 ```bash
-# Test in browser first
-https://your-ngrok-url.ngrok-free.app/api/temples
+cd "ai_assistant"
+.\build_apk_now.bat
+```
 
-# Then rebuild
-flutter clean
+Or via Flutter CLI:
+```bash
 flutter build apk --release
 ```
 
----
-
-### Problem: ngrok URL changed
-
-**Why:** Free tier generates new URL each restart
-
-**Solution:**
-```bash
-# Quick rebuild with new URL
-flutter build apk --release \
-  --dart-define=BACKEND_URL=https://new-url.ngrok-free.app
+The compiled APK will be generated at:
+```text
+ai_assistant/build/app/outputs/flutter-apk/app-release.apk
 ```
 
-**Better:** Get ngrok Pro ($8/month) for permanent URL
+---
+
+## 🧪 Testing on Physical Phones
+
+For full physical phone testing workflows (via ngrok, local Wi-Fi, or ADB), refer to our detailed guides:
+- 📖 **[README_PHONE_TESTING.md](README_PHONE_TESTING.md)**: Physical phone testing overview
+- ⚡ **[QUICK_NGROK_REFERENCE.md](QUICK_NGROK_REFERENCE.md)**: Quick command cheatsheet
+- 📋 **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)**: Pre-deployment verification checklist
 
 ---
 
-### Problem: App is slow
+## 📜 Sacred Dedication
 
-**Why:** ngrok adds latency (~100-300ms)
-
-**Normal!** This is expected for free tier.
-
-**Alternatives:**
-- Use local WiFi (faster)
-- Deploy to cloud (Railway, Render)
-
----
-
-## 📊 What Changed
-
-### Files Modified (3)
-
-1. **`backend/server.js`**
-   - Added ngrok compatibility headers
-   - Line 31: `ngrok-skip-browser-warning` header
-
-2. **`lib/services/simhastha_backend_service.dart`**
-   - Reads URL from AppConstants
-   - Added ngrok headers to requests
-   - Increased timeout to 10s
-
-3. **`lib/constants/app_constants.dart`**
-   - Added `backendBaseUrl` constant
-   - Supports environment override
-
-### Files Created (13)
-
-- 📚 6 Documentation files
-- 🛠️ 3 Helper scripts
-- ⚙️ 2 Config files
-- 📋 2 Summary files
-
----
-
-## 🎯 Success Metrics
-
-After setup, you'll have:
-
-- ✅ Backend accessible over internet
-- ✅ APK testable on any phone
-- ✅ Automated scripts for common tasks
-- ✅ Complete documentation
-- ✅ Multiple testing workflows
-- ✅ Troubleshooting guides
-
----
-
-## 🚀 Next Steps
-
-### Immediate
-- [ ] Read [START_HERE.md](START_HERE.md)
-- [ ] Install ngrok
-- [ ] Run first test
-
-### Short Term
-- [ ] Test on multiple devices
-- [ ] Share with team
-- [ ] Gather feedback
-
-### Long Term
-- [ ] Deploy backend to cloud
-- [ ] Get permanent URL
-- [ ] Setup CI/CD
-
----
-
-## 📞 Resources
-
-### Documentation
-- **Navigation:** [START_HERE.md](START_HERE.md)
-- **Quick Reference:** [QUICK_NGROK_REFERENCE.md](QUICK_NGROK_REFERENCE.md)
-- **Checklist:** [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)
-
-### External Links
-- **ngrok:** https://ngrok.com
-- **Flutter:** https://flutter.dev
-- **ADB Guide:** https://developer.android.com/studio/command-line/adb
-
----
-
-## 💡 Pro Tips
-
-1. **Keep terminals open** - Don't close backend/ngrok while testing
-2. **Test in browser first** - Verify API before building APK
-3. **Use scripts** - Save time with automated helpers
-4. **Monitor logs** - Visit http://127.0.0.1:4040 for ngrok traffic
-5. **Clean build** - Run `flutter clean` when changing URLs
-
----
-
-## 🎊 Ready to Start?
-
-```bash
-# Quick test in 3 commands:
-
-# 1. Start services
-cd "e:\AI app\backend"
-start_ngrok.bat
-
-# 2. Build APK
-cd "e:\AI app\ai_assistant"
-build_for_phone.bat
-
-# 3. Install on phone and test!
-```
-
-**Read [START_HERE.md](START_HERE.md) for detailed guidance!**
-
----
-
-**Implementation Status:** ✅ Complete  
-**Documentation:** 📚 Comprehensive  
-**Ready to Use:** 🚀 Yes!
-
-**Happy Testing! 📱✨**
+<p align="center">
+  <b>॥ अवन्तिकायां विहितावतारं मुक्तिप्रदानाय च सज्जनानाम् ।<br>
+  अकालमृत्योः परिरक्षणार्थं वन्दे महाकालमहासुरेशम् ॥</b><br><br>
+  <i>Dedicated to the millions of pilgrims visiting the holy city of Ujjain and the upcoming Simhastha Kumbh Mela 2028.</i>
+</p>

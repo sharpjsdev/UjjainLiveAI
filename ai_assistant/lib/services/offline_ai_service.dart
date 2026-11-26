@@ -11,6 +11,14 @@ class OfflineAIService {
   factory OfflineAIService() => _instance;
   OfflineAIService._internal();
 
+  String? _dynamicKnowledgeContext;
+
+  void setKnowledgeContext(String context) {
+    if (context.trim().isNotEmpty) {
+      _dynamicKnowledgeContext = context;
+    }
+  }
+
   // ─── Landmark coordinate database (lat, lon) ─────────────────────────────
   // These are accurate coordinates for key Ujjain landmarks
 
@@ -3432,7 +3440,9 @@ class OfflineAIService {
         '   ⭐ ${hotel['rating']}/5 | 💰 ${hotel['price']} | 📍 ${hotel['distance']}',
       );
       response.writeln('   ✨ ${hotel['highlight']}');
-      response.writeln('   🔧 ${(hotel['features'] as List).join(', ')}\n');
+      response.writeln('   🔧 ${(hotel['features'] as List).join(', ')}');
+      final hotelQuery = Uri.encodeComponent('${hotel['name']}, Ujjain');
+      response.writeln('   🗺️ Google Maps: https://www.google.com/maps/search/?api=1&query=$hotelQuery\n');
     }
 
     response.writeln(
@@ -3655,7 +3665,9 @@ class OfflineAIService {
         '   ⭐ ${hotel['rating']}/5 | 💰 ${hotel['price']} | 📍 ${hotel['distance']}',
       );
       response.writeln('   ✨ ${hotel['highlight']}');
-      response.writeln('   🔧 ${(hotel['features'] as List).join(', ')}\n');
+      response.writeln('   🔧 ${(hotel['features'] as List).join(', ')}');
+      final hotelQuery = Uri.encodeComponent('${hotel['name']}, Ujjain');
+      response.writeln('   🗺️ Google Maps: https://www.google.com/maps/search/?api=1&query=$hotelQuery\n');
     }
   }
 
