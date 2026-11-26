@@ -3,7 +3,7 @@ echo ========================================
 echo Building APK with ngrok URL
 echo ========================================
 echo.
-echo Backend URL: https://e30b-2405-201-303a-c097-d67-b57-8c10-2c05.ngrok-free.app
+echo Backend URL: https://e158-183-87-13-226.ngrok-free.app
 echo.
 
 echo [1/3] Cleaning previous build...
@@ -47,7 +47,7 @@ if exist "build\app\outputs\flutter-apk\app-release.apk" (
     echo 3. Launch app and test!
     echo.
     echo The app is configured to connect to:
-    echo https://e30b-2405-201-303a-c097-d67-b57-8c10-2c05.ngrok-free.app
+    echo https://e158-183-87-13-226.ngrok-free.app
     echo.
     
     set /p INSTALL_ADB="Install via ADB now? (y/n): "

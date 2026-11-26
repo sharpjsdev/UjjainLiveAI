@@ -911,34 +911,34 @@ class QueryAgentService {
   ) {
     switch (intent.primaryIntent) {
       case IntentType.distanceQuery:
-        return 'Provide accurate distance information with walking/driving time estimates. Include Google Maps link if relevant.';
+        return 'Provide direct, on-point distance with walking/driving time estimates. Keep it brief.';
 
       case IntentType.templeInquiry:
-        return 'Provide comprehensive temple information including darshan timings, aarti schedules, significance, and visitor guidelines.';
+        return 'Answer ONLY the specific question asked about the temple. Be concise and strictly relevant. If asked about specialities or significance, provide only the key unique points in bullet points without unrequested timings, rules, or general overviews.';
 
       case IntentType.aartiSchedule:
-        return 'Provide detailed aarti timings (both summer and winter schedules if applicable). Mention special requirements or dress codes.';
+        return 'Provide only the specific aarti timing asked for directly, accurately, and concisely.';
 
       case IntentType.simhasthaInquiry:
-        return 'Provide Simhastha Kumbh Mela information focusing on 2028 dates, Shahi Snan timings, and pilgrim guidelines.';
+        return 'Provide concise, on-point Simhastha Kumbh Mela information answering directly what was asked.';
 
       case IntentType.hotelInquiry:
-        return 'Suggest accommodations with approximate prices, locations, and contact information. Consider pilgrim budget options.';
+        return 'Suggest 2-3 relevant accommodations with approximate price ranges, and MANDATORILY provide the clickable Google Maps link for EACH hotel/dharamshala listed.';
 
       case IntentType.transportInquiry:
-        return 'Provide transportation options with timings, routes, and approximate costs. Include both public and private transport.';
+        return 'Provide direct transportation options with approximate cost and travel time concisely.';
 
       case IntentType.directionQuery:
-        return 'Provide clear step-by-step directions. Mention landmarks along the route. Suggest best mode of transport.';
+        return 'Provide brief, clear directions with key landmarks.';
 
       case IntentType.greeting:
-        return 'Respond warmly and ask how you can assist with their Ujjain pilgrimage.';
+        return 'Respond warmly and briefly (1 sentence) asking how to help.';
 
       case IntentType.calculation:
-        return 'Perform the calculation accurately and show the result clearly.';
+        return 'Perform the calculation accurately and show the result directly.';
 
       default:
-        return 'Provide accurate, helpful, and contextually relevant information in a friendly manner.';
+        return 'Be concise, direct, and strictly on-point. Answer only what was asked without unnecessary fluff or lengthy background.';
     }
   }
 

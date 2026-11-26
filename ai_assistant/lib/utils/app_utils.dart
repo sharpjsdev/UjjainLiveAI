@@ -2,6 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class AppUtils {
+  /// Cleans AI text for clear, natural Text-to-Speech audio output.
+  /// Strips URLs, markdown formatting, bullet symbols, and raw technical links.
+  static String cleanTextForSpeech(String text) {
+    var cleaned = text;
+    // Replace markdown links [Label](url) with just Label
+    cleaned = cleaned.replaceAllMapped(
+      RegExp(r'\[([^\]]+)\]\([^\)]+\)'),
+      (match) => match.group(1) ?? '',
+    );
+    // Remove raw URLs completely so TTS does not spell out characters
+    cleaned = cleaned.replaceAll(
+      RegExp(r'https?://[^\s<>()]+', caseSensitive: false),
+      '',
+    );
+    // Remove dangling "Google Maps:" or "Directions:" prefixes left after stripping URLs
+    cleaned = cleaned.replaceAll(
+      RegExp(r'(?:Google Maps|Directions|गूगल मैप्स)\s*:\s*', caseSensitive: false),
+      '',
+    );
+    // Remove markdown formatting characters: *, #, _, `, ~
+    cleaned = cleaned.replaceAll(RegExp(r'[*#_`~]'), '');
+    // Remove leading bullet symbols
+    cleaned = cleaned.replaceAll(RegExp(r'^[•\-\+]\s*', multiLine: true), '');
+    // Clean multiple consecutive newlines or extra spaces
+    cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    cleaned = cleaned.replaceAll(RegExp(r'[ \t]{2,}'), ' ');
+    return cleaned.trim();
+  }
+
   static String cleanAssistantResponse(String text) {
     final urlPattern = RegExp(r'https?://[^\s<>()]+', caseSensitive: false);
     final urls = urlPattern.allMatches(text).toList();

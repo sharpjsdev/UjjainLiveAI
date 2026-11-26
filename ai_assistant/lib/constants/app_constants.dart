@@ -11,19 +11,27 @@ class AppConstants {
   // For production: https://your-production-url.com
   static const String backendBaseUrl = String.fromEnvironment(
     'BACKEND_URL',
-    defaultValue: 'https://6434-183-87-13-226.ngrok-free.app', // ✅ Updated with your ngrok URL
+    defaultValue: 'https://ee10-183-87-13-226.ngrok-free.app', // ✅ Updated with your ngrok URL
   );
   
-  // API Keys (supports both OpenAI 'sk-...' and OpenRouter 'sk-or-...')
-  static const String openAiApiKey = String.fromEnvironment('OPENAI_API_KEY', defaultValue: '');
+  
+  // API Keys (supports Google Gemini via AQ./AIza or OpenRouter 'sk-or-...')
+  static const String openAiApiKey = String.fromEnvironment(
+    'GEMINI_API_KEY',
+    defaultValue: 'YOUR_GEMINI_API_KEY',
+  );
   static const String googleApiKey = '';
   
-  // Auto-detect online vs offline: if API key is empty, use offline mode only
-  static bool get useOnlineMode => openAiApiKey.isNotEmpty;
+  // Auto-detect online vs offline: if API key is empty or placeholder, use offline mode only
+  static bool get useOnlineMode =>
+      openAiApiKey.isNotEmpty && openAiApiKey != 'YOUR_GEMINI_API_KEY';
   static bool get isGemini => openAiApiKey.trim().startsWith('AQ.') || openAiApiKey.trim().startsWith('AIza');
   static bool get isOpenRouter => openAiApiKey.trim().startsWith('sk-or-');
   static String get geminiApiBaseUrl => 'https://generativelanguage.googleapis.com/v1beta/models';
   static String get apiUrl => isGemini ? geminiApiBaseUrl : (isOpenRouter ? openRouterApiUrl : openAiApiUrl);
+  
+  // AI Model Configuration - Exclusively NVIDIA Nemotron Free Model
+  static const String openRouterModel = 'nvidia/nemotron-3-ultra-550b-a55b:free';
   
   // App Configuration - Ujjain Live
   static const String appName = 'Ujjain Live';

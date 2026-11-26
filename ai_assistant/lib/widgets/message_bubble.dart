@@ -200,17 +200,19 @@ class MessageBubble extends StatelessWidget {
   Widget _buildSpeakButton(BuildContext context) {
     return Consumer<SpeechProvider>(
       builder: (context, speechProvider, child) {
-        final isSpeaking = speechProvider.isSpeaking;
+        final isSpeakingThis = speechProvider.isSpeaking &&
+            speechProvider.currentlySpeakingMessageId == message.id;
 
         return Padding(
           padding: const EdgeInsets.only(top: 8),
           child: InkWell(
             onTap: () {
-              if (isSpeaking) {
+              if (isSpeakingThis) {
                 speechProvider.stopSpeaking();
               } else {
                 speechProvider.speak(
-                  AppUtils.cleanAssistantResponse(message.content),
+                  AppUtils.cleanTextForSpeech(message.content),
+                  messageId: message.id,
                 );
               }
             },
@@ -218,13 +220,13 @@ class MessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: isSpeaking
-                    ? AppColors.primary.withValues(alpha: 0.15)
+                color: isSpeakingThis
+                    ? AppColors.devotional.withValues(alpha: 0.15)
                     : AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isSpeaking
-                      ? AppColors.primary
+                  color: isSpeakingThis
+                      ? AppColors.devotional
                       : AppColors.primary.withValues(alpha: 0.25),
                   width: 1,
                 ),
@@ -233,21 +235,21 @@ class MessageBubble extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    isSpeaking
+                    isSpeakingThis
                         ? Icons.stop_circle_rounded
                         : Icons.volume_up_rounded,
                     size: 15,
-                    color: isSpeaking
+                    color: isSpeakingThis
                         ? AppColors.devotional
                         : AppColors.primary,
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    isSpeaking ? 'Listening...' : 'Listen',
+                    isSpeakingThis ? 'Stop' : 'Listen',
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: isSpeaking
+                      color: isSpeakingThis
                           ? AppColors.devotional
                           : AppColors.primaryDark,
                     ),

@@ -21,6 +21,16 @@ class HybridAIService {
   bool _forceOfflineMode = false;
   bool _lastResponseWasOnlineModel = false;
 
+  // Backend-loaded ujjain_city_guide context (set once on app init)
+  String _knowledgeContext = '';
+
+  /// Called by ChatProvider after loading context from backend MySQL
+  void setKnowledgeContext(String context) {
+    _knowledgeContext = context;
+    _onlineAIService.setKnowledgeContext(context);
+    _offlineAIService.setKnowledgeContext(context);
+  }
+
   // Getters
   bool get isOnline => _networkService.hasInternetAccess && !_forceOfflineMode;
   bool get isOffline => !isOnline;
@@ -89,17 +99,17 @@ class HybridAIService {
                 responseLanguage: analysis.language ?? responseLanguage,
               )
               .timeout(
-                const Duration(seconds: 12),
+                const Duration(seconds: 25),
                 onTimeout: () => throw TimeoutException(
                   'Online service timeout',
                 ),
               );
           _lastResponseWasOnlineModel = true;
           return response;
-        } catch (_) {
-          return responseLanguage.toLowerCase().startsWith('hi')
-              ? 'ऑनलाइन AI से जवाब नहीं मिल पाया। कृपया फिर कोशिश करें।'
-              : 'The online AI could not respond. Please try again.';
+        } catch (onlineErr) {
+          print('[HybridAI] ⚠️ Online AI error: $onlineErr. Seamlessly falling back to offline knowledge engine!');
+          // DO NOT return a dead error message! Fall through to Step 3 so the
+          // comprehensive Ujjain knowledge engine answers immediately.
         }
       }
 

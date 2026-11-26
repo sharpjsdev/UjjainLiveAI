@@ -11,6 +11,7 @@ import '../utils/app_utils.dart';
 import 'chat_sessions_screen.dart';
 import 'settings_screen.dart';
 import 'offline_demo_screen.dart';
+import 'home_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String? initialMessage;
@@ -51,6 +52,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       if (!speechProvider.isInitialized) {
         speechProvider.initialize();
       }
+
+      // Automatically speak incoming AI responses if Auto-Listen is enabled
+      chatProvider.onResponseReceived = (message) {
+        if (!mounted) return;
+        final sp = context.read<SpeechProvider>();
+        if (sp.autoSpeakResponse) {
+          final speechText = AppUtils.cleanTextForSpeech(message.content);
+          if (speechText.trim().isNotEmpty) {
+            sp.speak(speechText, messageId: message.id);
+          }
+        }
+      };
 
       if (widget.initialMessage != null && widget.initialMessage!.trim().isNotEmpty) {
         Future.delayed(const Duration(milliseconds: 300), () {
@@ -178,7 +191,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      toolbarHeight: 72,
+      toolbarHeight: 68,
+      titleSpacing: 4,
       flexibleSpace: Container(
         decoration: const BoxDecoration(gradient: AppColors.headerGradient),
       ),
@@ -187,8 +201,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       title: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.2),
@@ -203,7 +217,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     'ॐ',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -211,7 +225,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 7),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -221,11 +235,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 const Text(
                   'Ujjain Live',
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 15.5,
                     height: 1.1,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
-                    letterSpacing: 0.8,
+                    letterSpacing: 0.4,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -233,7 +247,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 Consumer<SpeechProvider>(
                   builder: (context, speechProvider, child) {
                     return SizedBox(
-                      height: 28,
+                      height: 20,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: speechProvider.isHindi ? 'hi' : 'en',
@@ -242,16 +256,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           icon: const Icon(
                             Icons.expand_more,
                             color: Colors.white70,
-                            size: 16,
+                            size: 13,
                           ),
                           style: const TextStyle(
                             color: Colors.white70,
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                           ),
                           items: const [
                             DropdownMenuItem(value: 'en', child: Text('English')),
-                            DropdownMenuItem(value: 'hi', child: Text('Hindi')),
+                            DropdownMenuItem(value: 'hi', child: Text('हिन्दी')),
                           ],
                           onChanged: (language) {
                             if (language != null) {
@@ -271,6 +285,80 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ],
       ),
       actions: [
+        // Auto-Listen (Auto TTS) Pill Badge
+        Consumer<SpeechProvider>(
+          builder: (context, speechProvider, child) {
+            final isAuto = speechProvider.autoSpeakResponse;
+            final isSpeaking = speechProvider.isSpeaking;
+            return GestureDetector(
+              onTap: () {
+                if (isSpeaking) {
+                  speechProvider.stopSpeaking();
+                } else {
+                  speechProvider.toggleAutoSpeakResponse();
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        speechProvider.autoSpeakResponse
+                            ? 'ऑटो लिसन चालू (Auto-Listen ON: AI answers will be spoken aloud)'
+                            : 'ऑटो लिसन बंद (Auto-Listen OFF: Silent reading mode)',
+                      ),
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: isSpeaking
+                      ? AppColors.devotional.withValues(alpha: 0.6)
+                      : (isAuto
+                          ? AppColors.templeGold.withValues(alpha: 0.25)
+                          : Colors.black.withValues(alpha: 0.3)),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isSpeaking
+                        ? Colors.redAccent
+                        : (isAuto ? AppColors.templeGold : Colors.white38),
+                    width: 0.9,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isSpeaking
+                          ? Icons.volume_up_rounded
+                          : (isAuto ? Icons.volume_up_rounded : Icons.volume_off_rounded),
+                      color: isSpeaking
+                          ? Colors.white
+                          : (isAuto ? AppColors.templeGold : Colors.white60),
+                      size: 11,
+                    ),
+                    const SizedBox(width: 2.5),
+                    Text(
+                      isSpeaking
+                          ? 'Speaking'
+                          : (isAuto ? 'Listen ON' : 'Listen OFF'),
+                      style: TextStyle(
+                        color: isSpeaking
+                            ? Colors.white
+                            : (isAuto ? AppColors.templeGold : Colors.white70),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+
         // Network status pill badge
         Consumer<ChatProvider>(
           builder: (context, chatProvider, child) {
@@ -278,16 +366,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             return GestureDetector(
               onTap: () => _showConnectionStatus(context, chatProvider),
               child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.symmetric(vertical: 20, horizontal: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                 decoration: BoxDecoration(
                   color: isOnline
-                      ? Colors.green.shade800.withValues(alpha: 0.35)
-                      : Colors.black.withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(14),
+                      ? Colors.green.shade800.withValues(alpha: 0.45)
+                      : Colors.black.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: isOnline ? Colors.white : AppColors.goldLight,
-                    width: 1,
+                    color: isOnline ? Colors.white70 : AppColors.goldLight,
+                    width: 0.9,
                   ),
                 ),
                 child: Row(
@@ -296,14 +384,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     Icon(
                       isOnline ? Icons.bolt : Icons.temple_hindu,
                       color: isOnline ? Colors.white : AppColors.templeGold,
-                      size: 13,
+                      size: 11,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 2.5),
                     Text(
                       isOnline ? 'Online' : 'Offline',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -319,12 +407,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           builder: (context, chatProvider, child) {
             final hasLoc = chatProvider.currentLocation != null;
             return IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               icon: Icon(
                 hasLoc ? Icons.location_on : Icons.location_off_outlined,
                 color: hasLoc
                     ? AppColors.templeGold
                     : Colors.white.withValues(alpha: 0.7),
-                size: 20,
+                size: 18,
               ),
               onPressed: () => chatProvider.refreshLocation(),
               tooltip: hasLoc
@@ -334,14 +424,26 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           },
         ),
 
-        // Overflow Menu
+        // Overflow Menu (Contains City Guide & Live Map, History, Settings)
         PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: Colors.white),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          icon: const Icon(Icons.more_vert, color: Colors.white, size: 20),
           onSelected: (value) => _handleMenuAction(value),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'city_guide',
+              child: Row(
+                children: [
+                  Icon(Icons.explore_outlined, color: AppColors.primary),
+                  SizedBox(width: 10),
+                  Text('City Guide & Live Map'),
+                ],
+              ),
+            ),
             const PopupMenuItem(
               value: 'sessions',
               child: Row(
@@ -524,13 +626,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   /// The Pilgrim's Sacred Sanctuary Hub - Rich Simhastha Empty State
   Widget _buildPilgrimWelcomeHub() {
     final chatProvider = context.read<ChatProvider>();
+    final speechProvider = context.watch<SpeechProvider>();
+    final isHindi = speechProvider.isHindi;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       child: Column(
         children: [
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           // Sacred Emblem & Blessing Badge
           Container(
@@ -567,7 +671,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
 
           // Invocation Heading
           const Text(
@@ -582,10 +686,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
           const SizedBox(height: 4),
 
-          const Text(
-            'Simhastha 2028 Digital Margdarshak',
+          Text(
+            isHindi
+                ? 'सिंहस्थ 2028 डिजिटल मार्गदर्शक'
+                : 'Simhastha 2028 Digital Margdarshak',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -593,85 +699,196 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Your digital guide to sacred Ujjain. Ask questions about Bhasma Aarti timings, Shipra snan, dharamshalas, pure food, or Simhastha events. Works 100% offline!',
+              isHindi
+                  ? 'उज्जैन दर्शन, भस्म आरती, शिप्रा स्नान, आश्रम व सात्विक भोजन के बारे में पूछें। 100% ऑफलाइन सक्रिय!'
+                  : 'Your digital guide to sacred Ujjain. Tap any question below or ask in your own words via voice or text. Works 100% offline!',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
+              style: const TextStyle(
+                fontSize: 12.5,
                 color: AppColors.textSecondary,
-                height: 1.45,
+                height: 1.4,
               ),
             ),
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
 
-          // Four Interactive Simhastha Pilgrimage Cards
-          _buildSpiritualActionCard(
+          // Section Title: Frequently Asked Questions
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4.5),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.help_outline_rounded,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isHindi ? 'अक्सर पूछे जाने वाले प्रश्न' : 'POPULAR QUESTIONS TO ASK',
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: AppColors.templeGold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.touch_app_rounded,
+                      size: 11,
+                      color: AppColors.devotional,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      isHindi ? 'टैप करके पूछें' : 'Tap to ask',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.devotional,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Question 1: Mahakaleshwar & Bhasma Aarti
+          _buildQuestionActionCard(
             emoji: '🕉️',
-            title: 'Mahakaleshwar & Bhasma Aarti',
-            subtitle:
-                'Darshan timings, Aarti booking rules & sacred ash ritual',
-            prompt:
-                'Tell me about Mahakaleshwar temple timings and how to attend Bhasma Aarti',
+            categoryTag: isHindi ? 'भस्म आरती व दर्शन' : 'Bhasma Aarti & Darshan',
+            question: isHindi
+                ? 'महाकाल भस्म आरती कैसे बुक करें और दर्शन का समय क्या है?'
+                : 'How do I book Mahakal Bhasma Aarti & what are darshan timings?',
+            subtitle: isHindi
+                ? 'सुबह 4:00 बजे आरती के नियम, ऑनलाइन स्लॉट, VIP दर्शन व गेट विवरण'
+                : '4:00 AM booking rules, VIP protocol, gates & offline quota',
+            prompt: isHindi
+                ? 'महाकालेश्वर मंदिर में भस्म आरती बुकिंग के नियम और सामान्य दर्शन का समय क्या है?'
+                : 'How can I book Bhasma Aarti at Mahakaleshwar temple and what are the daily darshan timings?',
+            isHindi: isHindi,
             onTap: (query) =>
                 _sendMessage(chatProvider, query, MessageType.text),
           ),
 
-          const SizedBox(height: 10),
-
-          _buildSpiritualActionCard(
+          // Question 2: Simhastha 2028 & Shahi Snan
+          _buildQuestionActionCard(
             emoji: '🚩',
-            title: 'Simhastha 2028 & Shahi Snan',
-            subtitle:
-                'Auspicious dates, Ram Ghat holy dips & Akhara processions',
-            prompt:
-                'When is Simhastha Kumbh Mela 2028 and what are the holy bathing dates?',
+            categoryTag: isHindi ? 'सिंहस्थ 2028 कुंभ' : 'Simhastha 2028 Kumbh',
+            question: isHindi
+                ? 'सिंहस्थ 2028 में शाही स्नान की तिथियां और मुख्य घाट कौन से हैं?'
+                : 'When are the Simhastha 2028 Shahi Snan dates & best ghats?',
+            subtitle: isHindi
+                ? 'राम घाट, दत्त अखाड़ा व शाही स्नान के शुभ मुहूर्त और अखाड़ा पेशवाई'
+                : 'Auspicious dates, Ram Ghat holy dips & Akhara processions',
+            prompt: isHindi
+                ? 'सिंहस्थ 2028 में शाही स्नान की मुख्य तारीखें और स्नान के प्रमुख घाट कौन से हैं?'
+                : 'What are the auspicious Shahi Snan dates and holy bathing ghats for Simhastha Kumbh 2028 in Ujjain?',
+            isHindi: isHindi,
             onTap: (query) =>
                 _sendMessage(chatProvider, query, MessageType.text),
           ),
 
-          const SizedBox(height: 10),
-
-          _buildSpiritualActionCard(
+          // Question 3: Dharamshalas & Stays
+          _buildQuestionActionCard(
             emoji: '🏨',
-            title: 'Dharamshalas & Pilgrim Stays',
-            subtitle: 'Budget & luxury accommodation near Mahakal temple',
-            prompt:
-                'Best hotels and dharamshalas near Mahakaleshwar temple in Ujjain',
+            categoryTag: isHindi ? 'आश्रम व धर्मशालाएं' : 'Pilgrim Stays & Ashrams',
+            question: isHindi
+                ? 'महाकाल मंदिर के पास अच्छी धर्मशाला और ठहरने की व्यवस्था कहाँ है?'
+                : 'Where can I find budget dharamshalas & stays near Mahakal?',
+            subtitle: isHindi
+                ? 'मंदिर के समीप स्वच्छ आश्रम, ट्रस्ट की धर्मशालाएं और बजट होटल'
+                : 'Clean trust dharamshalas, ashrams & hotels within walking distance',
+            prompt: isHindi
+                ? 'महाकालेश्वर मंदिर के पास अच्छी और सस्ती धर्मशालाएं व होटल कौन से हैं?'
+                : 'What are the best dharamshalas, ashrams, and budget hotels near Mahakaleshwar temple?',
+            isHindi: isHindi,
             onTap: (query) =>
                 _sendMessage(chatProvider, query, MessageType.text),
+          ),
+
+          // Question 4: Sattvic Food & Prasadam
+          _buildQuestionActionCard(
+            emoji: '🥘',
+            categoryTag: isHindi ? 'सात्विक भोजन व प्रसादम' : 'Pure Food & Prasadam',
+            question: isHindi
+                ? 'उज्जैन का प्रसिद्ध पोहा, सात्विक भोजन और महाकाल प्रसादम कहाँ मिलेगा?'
+                : 'Where to get authentic Ujjaini poha, sattvic food & prasad?',
+            subtitle: isHindi
+                ? 'टॉवर चौक का पोहा-जलेबी, सराफा नाइट फूड और मंदिर का शुद्ध लड्डू प्रसाद'
+                : 'Tower Chowk breakfast, Sarafa Night Market & temple laddu prasad',
+            prompt: isHindi
+                ? 'उज्जैन का प्रसिद्ध सात्विक भोजन, पोहा-जलेबी और महाकाल मंदिर का लड्डू प्रसाद कहाँ मिलता है?'
+                : 'Where can I get authentic Ujjaini poha, malpua, and Mahakal temple laddoo prasad?',
+            isHindi: isHindi,
+            onTap: (query) =>
+                _sendMessage(chatProvider, query, MessageType.text),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Quick Prompt Question Chips
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.flash_on_rounded,
+                size: 14,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                isHindi ? 'त्वरित सवाल (Quick queries)' : 'More quick questions',
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 10),
 
-          _buildSpiritualActionCard(
-            emoji: '🥘',
-            title: 'Sattvic Food & Prasadam',
-            subtitle: 'Authentic Ujjaini Poha, Malpua & pure veg restaurants',
-            prompt:
-                'Best pure vegetarian restaurants and temple prasadam in Ujjain',
-            onTap: (query) =>
-                _sendMessage(chatProvider, query, MessageType.text),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Quick prompt chips
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
-            children: [
-              _buildSuggestionChip('Temple circuit order'),
-              _buildSuggestionChip('Kal Bhairav timing'),
-              _buildSuggestionChip('Harsiddhi Mata Shakti Peeth'),
-              _buildSuggestionChip('Budget stay prices'),
-            ],
+            children: isHindi
+                ? [
+                    _buildSuggestionChip('काल भैरव दर्शन समय?'),
+                    _buildSuggestionChip('हरसिद्धि शक्तिपीठ दीपमालिका?'),
+                    _buildSuggestionChip('मंगलनाथ भात पूजा?'),
+                    _buildSuggestionChip('राम घाट संध्या आरती?'),
+                  ]
+                : [
+                    _buildSuggestionChip('Kal Bhairav visit rules?'),
+                    _buildSuggestionChip('Harsiddhi Deepmalika timing?'),
+                    _buildSuggestionChip('Mangalnath Bhat Puja cost?'),
+                    _buildSuggestionChip('Ram Ghat evening aarti?'),
+                  ],
           ),
 
           const SizedBox(height: 16),
@@ -680,92 +897,172 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSpiritualActionCard({
+  Widget _buildQuestionActionCard({
     required String emoji,
-    required String title,
+    required String categoryTag,
+    required String question,
     required String subtitle,
     required String prompt,
     required Function(String) onTap,
+    required bool isHindi,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onTap(prompt),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.25),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.cardShadow,
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.22),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 22)),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onTap(prompt),
+          borderRadius: BorderRadius.circular(18),
+          splashColor: AppColors.primary.withValues(alpha: 0.12),
+          highlightColor: AppColors.primary.withValues(alpha: 0.05),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top Tag Bar: Category Tag on left, "Ask AI ➔" pill on right
+                Row(
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.09),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        categoryTag,
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                          letterSpacing: 0.3,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.3,
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.22),
+                          width: 0.8,
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 11,
+                            color: AppColors.templeGold,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            isHindi ? 'पूछें' : 'Ask AI',
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 11,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
+
+                const SizedBox(height: 10),
+
+                // Question Body: Left Squircle Emoji + Question Text
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFFFF7ED),
+                            Color(0xFFFFEDD5),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 22),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            question,
+                            style: const TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              height: 1.34,
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary,
+                              height: 1.35,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -774,6 +1071,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   Widget _buildSuggestionChip(String text) {
     return ActionChip(
+      avatar: const Icon(
+        Icons.chat_bubble_outline_rounded,
+        size: 13,
+        color: AppColors.primary,
+      ),
       label: Text(text),
       labelStyle: const TextStyle(
         fontSize: 12,
@@ -846,10 +1148,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     String content,
     MessageType type,
   ) {
+    // If text-to-speech audio is playing, stop it so the user can interact freely
+    final speechProvider = context.read<SpeechProvider>();
+    if (speechProvider.isSpeaking) {
+      speechProvider.stopSpeaking();
+    }
+
     chatProvider.sendMessage(
       content,
       type: type,
-      responseLanguage: context.read<SpeechProvider>().responseLanguage,
+      responseLanguage: speechProvider.responseLanguage,
     );
     _scrollToBottom();
   }
@@ -872,6 +1180,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final chatProvider = context.read<ChatProvider>();
 
     switch (action) {
+      case 'city_guide':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+        break;
+
       case 'sessions':
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const ChatSessionsScreen()),

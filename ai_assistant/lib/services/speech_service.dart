@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -27,11 +26,24 @@ class SpeechService {
   Completer<String?>? _listeningCompleter;
   Timer? _silenceTimer;
 
+  // Continuous listening state: accumulate across speech segments until explicitly stopped
+  String _accumulatedWords = '';
+  String _currentSegmentWords = '';
+  bool _userExplicitlyStopped = false;
+  Function(String)? _activePartialCallback;
+  String? _currentTargetLocale;
+  bool _useOnDevice = false;
+
+  // TTS callbacks
+  void Function()? onTtsStart;
+  void Function()? onTtsComplete;
+  void Function()? onTtsError;
+
   // Getters
   bool get isInitialized => _isInitialized;
   bool get isAvailable => _isAvailable;
   bool get isListening => _isListening;
-  bool get isSpeaking => _isSpeaking;n
+  bool get isSpeaking => _isSpeaking;
   String? get lastError => _lastError;
   String get lastRecognizedWords => _lastRecognizedWords;
 
@@ -101,16 +113,25 @@ class SpeechService {
       _flutterTts.setStartHandler(() {
         debugLog('TTS started');
         _isSpeaking = true;
+        onTtsStart?.call();
       });
 
       _flutterTts.setCompletionHandler(() {
         debugLog('TTS completed');
         _isSpeaking = false;
+        onTtsComplete?.call();
+      });
+
+      _flutterTts.setCancelHandler(() {
+        debugLog('TTS cancelled');
+        _isSpeaking = false;
+        onTtsComplete?.call();
       });
 
       _flutterTts.setErrorHandler((error) {
         debugLog('TTS Error: $error');
         _isSpeaking = false;
+        onTtsError?.call();
       });
 
       debugLog('Text to Speech initialized (language: $ttsLang)');
@@ -195,7 +216,7 @@ class SpeechService {
     Duration? timeout,
   }) async {
     try {
-      debugLog('Starting voice listening...');
+      debugLog('Starting continuous voice listening (never stops until user clicks stop/submit)...');
 
       // Ensure initialized
       if (!_isInitialized) {
@@ -209,173 +230,202 @@ class SpeechService {
 
       await _networkService.initialize();
 
-      // Stop any ongoing session
+      // Stop any prior active listening session cleanly
+      _userExplicitlyStopped = true;
       if (_isListening || _speechToText.isListening) {
-        debugLog('Already listening, stopping first...');
+        debugLog('Already listening, stopping prior session...');
         await _speechToText.cancel();
-        _isListening = false;
-        await Future.delayed(const Duration(milliseconds: 250));
+        await Future.delayed(const Duration(milliseconds: 150));
       }
 
-      // Cancel any pending completion
       _silenceTimer?.cancel();
       _silenceTimer = null;
       if (_listeningCompleter != null && !_listeningCompleter!.isCompleted) {
         _listeningCompleter!.complete(null);
       }
 
+      // Reset state for new continuous listening session
+      _userExplicitlyStopped = false;
       _lastError = null;
       _lastRecognizedWords = '';
+      _accumulatedWords = '';
+      _currentSegmentWords = '';
+      _activePartialCallback = onPartialResult;
       _listeningCompleter = Completer<String?>();
       _isListening = true;
 
-      final actualTimeout = timeout ?? AppConstants.speechTimeoutDuration;
       final targetLocale =
           _cachedLocaleId ??
           await _resolveBestLocale() ??
           AppConstants.speechLocaleId;
+      _currentTargetLocale = targetLocale;
+
+      final isOffline = !_networkService.hasInternetAccess;
+      _useOnDevice = isOffline;
 
       debugLog(
-        'Starting continuous voice capture without timer cutoff (locale: $targetLocale)',
+        'Launching persistent continuous session: locale=$targetLocale, onDevice=$_useOnDevice',
       );
 
-      // Internal helper to start listening with chosen configuration
-      Future<bool> triggerListen({required bool onDevice}) async {
-        try {
-          final options = stt.SpeechListenOptions(
-            listenFor: actualTimeout,
-            pauseFor: const Duration(seconds: 3),
-            partialResults: true,
-            localeId: targetLocale,
-            cancelOnError: false,
-            listenMode: stt.ListenMode.dictation,
-            onDevice: onDevice,
-          );
-
-          await _speechToText.listen(
-            onResult: (result) {
-              debugLog(
-                'Result: "${result.recognizedWords}" (final: ${result.finalResult}, confidence: ${result.confidence})',
-              );
-
-              if (result.recognizedWords.trim().isNotEmpty) {
-                _lastRecognizedWords = result.recognizedWords;
-                // Notify partial results immediately
-                if (!result.finalResult && onPartialResult != null) {
-                  onPartialResult(_lastRecognizedWords);
-                }
-              }
-
-              if (result.finalResult) {
-                _isListening = false;
-                _silenceTimer?.cancel();
-                debugLog('Final result: $_lastRecognizedWords');
-                _completeListening();
-              }
-            },
-            listenOptions: options,
-          );
-          return true;
-        } catch (e) {
-          debugLog('triggerListen(onDevice=$onDevice) error: $e');
-          return false;
-        }
+      final started = await _launchUnderlyingListen();
+      if (!started && !_useOnDevice && !isOffline) {
+        // Try fallback to onDevice
+        _useOnDevice = true;
+        await _launchUnderlyingListen();
       }
 
-      // With no internet, request on-device recognition first so the platform
-      // does not try its network recognizer for the selected locale.
-      final isOffline = !_networkService.hasInternetAccess;
-      bool started;
-      if (isOffline) {
-        started = await triggerListen(onDevice: true);
-      } else {
-        started = await triggerListen(onDevice: false);
-
-        // If the standard recognizer cannot start, try its on-device mode.
-        if (!started &&
-            _listeningCompleter != null &&
-            !_listeningCompleter!.isCompleted) {
-          debugLog(
-            'Standard listen failed to start, trying fallback with onDevice: true...',
-          );
-          started = await triggerListen(onDevice: true);
-        }
-      }
-
-      if (!started && _lastRecognizedWords.trim().isEmpty) {
-        _isListening = false;
-        _completeListening();
-        return null;
-      }
-
-      debugLog('Listening started, waiting for result...');
-
-      // Continuous listening completes on user pause, stop button, or submit
-      final result = await _listeningCompleter!.future.timeout(
-        actualTimeout,
-        onTimeout: () async {
-          debugLog('Continuous listen max duration reached');
-          await stopListening();
-          return _lastRecognizedWords.trim().isNotEmpty
-              ? _lastRecognizedWords.trim()
-              : null;
-        },
-      );
-
-      debugLog('Returning result: "$result"');
+      // Wait until user explicitly stops via stopListening() / cancelListening()
+      final result = await _listeningCompleter!.future;
+      debugLog('Continuous listening completed with final result: "$result"');
       return result;
     } catch (e) {
-      debugLog('Error during listening: $e');
+      debugLog('Error during startListening: $e');
       _lastError = e.toString();
       _isListening = false;
-      _completeListening();
+      _finishListening();
       return null;
     }
   }
 
-  void _completeListening() {
-    if (_listeningCompleter != null && !_listeningCompleter!.isCompleted) {
-      final words = _lastRecognizedWords.trim();
-      _listeningCompleter!.complete(words.isNotEmpty ? words : null);
+  /// Internal: Starts or restarts the native SpeechToText engine without closing the user session
+  Future<bool> _launchUnderlyingListen() async {
+    if (_userExplicitlyStopped) return false;
+
+    try {
+      final options = stt.SpeechListenOptions(
+        listenFor: const Duration(minutes: 30), // Long session window
+        pauseFor: const Duration(seconds: 15), // Do not cut off on pause/breath
+        partialResults: true,
+        localeId: _currentTargetLocale,
+        cancelOnError: false,
+        listenMode: stt.ListenMode.dictation,
+        onDevice: _useOnDevice,
+      );
+
+      await _speechToText.listen(
+        onResult: (result) {
+          if (_userExplicitlyStopped) return;
+
+          final words = result.recognizedWords.trim();
+          if (words.isNotEmpty) {
+            _currentSegmentWords = words;
+            _notifyCurrentFullText();
+          }
+
+          if (result.finalResult) {
+            debugLog('Segment final result received: "$words"');
+            if (words.isNotEmpty) {
+              if (_accumulatedWords.isEmpty) {
+                _accumulatedWords = words;
+              } else if (!_accumulatedWords.endsWith(words)) {
+                _accumulatedWords = '$_accumulatedWords $words';
+              }
+              _currentSegmentWords = '';
+              _notifyCurrentFullText();
+            }
+
+            // DO NOT stop listening! If native recognizer wrapped up the segment,
+            // immediately restart to keep mic open for the next sentence.
+            if (!_userExplicitlyStopped) {
+              _scheduleAutoRestart(100);
+            }
+          }
+        },
+        listenOptions: options,
+      );
+      _isListening = true;
+      return true;
+    } catch (e) {
+      debugLog('Native listen launch error: $e');
+      return false;
     }
   }
 
+  void _notifyCurrentFullText() {
+    final full = _getFullTranscribedText();
+    _lastRecognizedWords = full;
+    if (_activePartialCallback != null && full.isNotEmpty) {
+      _activePartialCallback!(full);
+    }
+  }
+
+  String _getFullTranscribedText() {
+    final acc = _accumulatedWords.trim();
+    final seg = _currentSegmentWords.trim();
+    if (acc.isEmpty) return seg;
+    if (seg.isEmpty) return acc;
+    if (acc.endsWith(seg)) return acc;
+    return '$acc $seg';
+  }
+
+  void _scheduleAutoRestart([int delayMs = 250]) {
+    if (_userExplicitlyStopped) return;
+    _silenceTimer?.cancel();
+    _silenceTimer = Timer(Duration(milliseconds: delayMs), () async {
+      if (_userExplicitlyStopped) return;
+      debugLog('Auto-restarting native STT to keep listening continuously...');
+      try {
+        if (!_speechToText.isListening) {
+          await _launchUnderlyingListen();
+        }
+      } catch (e) {
+        debugLog('Error in auto-restart: $e');
+      }
+    });
+  }
+
+  void _finishListening() {
+    _silenceTimer?.cancel();
+    _silenceTimer = null;
+    _isListening = false;
+    if (_listeningCompleter != null && !_listeningCompleter!.isCompleted) {
+      final finalWords = _getFullTranscribedText().trim();
+      _listeningCompleter!.complete(finalWords.isNotEmpty ? finalWords : null);
+    }
+  }
+
+  /// USER ACTION: Called ONLY when user taps Stop Mic or Submits the message
   Future<void> stopListening() async {
     try {
-      debugLog('Stopping listening...');
+      debugLog('User initiated stopListening()...');
+      _userExplicitlyStopped = true;
       _silenceTimer?.cancel();
       _silenceTimer = null;
-      if (_isListening || _speechToText.isListening) {
+      if (_speechToText.isListening) {
         await _speechToText.stop();
-        _isListening = false;
-        debugLog('Listening stopped');
       }
-      _completeListening();
+      _isListening = false;
+      _finishListening();
     } catch (e) {
       debugLog('Error stopping listening: $e');
+      _userExplicitlyStopped = true;
       _isListening = false;
-      _completeListening();
+      _finishListening();
     }
   }
 
+  /// USER ACTION: Cancel and discard listening
   Future<void> cancelListening() async {
     try {
+      debugLog('User cancelled listening...');
+      _userExplicitlyStopped = true;
       _silenceTimer?.cancel();
       _silenceTimer = null;
-      if (_isListening || _speechToText.isListening) {
+      if (_speechToText.isListening) {
         await _speechToText.cancel();
-        _isListening = false;
-        debugLog('Listening cancelled');
       }
+      _isListening = false;
+      _accumulatedWords = '';
+      _currentSegmentWords = '';
       if (_listeningCompleter != null && !_listeningCompleter!.isCompleted) {
         _listeningCompleter!.complete(null);
       }
     } catch (e) {
       debugLog('Error cancelling listening: $e');
+      _userExplicitlyStopped = true;
       _isListening = false;
     }
   }
-
   Future<void> speak(String text) async {
     try {
       debugLog('Speaking: "$text"');
@@ -404,6 +454,7 @@ class SpeechService {
         await _flutterTts.stop();
         _isSpeaking = false;
         debugLog('Speaking stopped');
+        onTtsComplete?.call();
       }
     } catch (e) {
       debugLog('Error stopping speech: $e');
@@ -513,22 +564,13 @@ class SpeechService {
 
     switch (status) {
       case 'done':
-        _isListening = false;
-        _silenceTimer?.cancel();
-        _silenceTimer = Timer(const Duration(milliseconds: 300), () {
-          _completeListening();
-        });
-        break;
-
       case 'notListening':
-        _isListening = false;
-        // Only finalize on notListening if words were already captured
-        // Do NOT finalize if words are empty (wait for user or 'done' status)
-        if (_lastRecognizedWords.trim().isNotEmpty) {
-          _silenceTimer?.cancel();
-          _silenceTimer = Timer(const Duration(milliseconds: 500), () {
-            _completeListening();
-          });
+        // If the user has NOT clicked stop/submit, keep listening by auto-restarting
+        if (!_userExplicitlyStopped && _isListening) {
+          debugLog('Native status is "$status" but user has not clicked stop -> auto-restarting listen session');
+          _scheduleAutoRestart(150);
+        } else {
+          _isListening = false;
         }
         break;
 
@@ -549,34 +591,34 @@ class SpeechService {
     }
     _lastError = errorMsg;
 
-    // Never lose recognized words due to an error at the end of speech
-    if (_lastRecognizedWords.trim().isNotEmpty) {
-      debugLog(
-        'Error received but words were captured: "$_lastRecognizedWords"',
-      );
-      _isListening = false;
-      _silenceTimer?.cancel();
-      _completeListening();
+    // If user explicitly stopped, wrap up
+    if (_userExplicitlyStopped) {
+      _finishListening();
       return;
     }
 
     final lower = (errorMsg ?? '').toLowerCase();
-    // Non-fatal transient pause/silence errors: allow user a brief window to speak
-    if (lower.contains('no_match') || lower.contains('speech_timeout')) {
-      debugLog(
-        'Transient speech silence ($errorMsg), waiting for speech or natural completion',
-      );
-      _silenceTimer?.cancel();
-      _silenceTimer = Timer(const Duration(milliseconds: 600), () {
-        _isListening = false;
-        _completeListening();
-      });
+    // Common non-fatal pauses/silences on Android (e.g. error_speech_timeout, error_no_match)
+    // NEVER stop listening on these â automatically restart the native engine!
+    if (lower.contains('no_match') ||
+        lower.contains('speech_timeout') ||
+        lower.contains('error_no_match') ||
+        lower.contains('error_speech_timeout')) {
+      debugLog('Speech pause/silence timeout ($errorMsg) -> restarting native listener to stay active');
+      _scheduleAutoRestart(200);
       return;
     }
 
-    _isListening = false;
-    _silenceTimer?.cancel();
-    _completeListening();
+    // On busy or other transient errors, retry restarting unless user explicitly clicked stop
+    if (lower.contains('busy') || lower.contains('client')) {
+      debugLog('Transient engine error ($errorMsg) -> restarting native listener');
+      _scheduleAutoRestart(300);
+      return;
+    }
+
+    // For any other unexpected error, attempt auto-restart so the user's mic stays alive
+    debugLog('Encountered error ($errorMsg), auto-restarting native session');
+    _scheduleAutoRestart(350);
   }
 
   void dispose() {
